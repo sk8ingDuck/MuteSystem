@@ -7,8 +7,6 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 import com.google.gson.Gson;
@@ -23,10 +21,11 @@ public class UUIDFetcher {
     public static final long FEBRUARY_2015 = 1422748800000L;
 
 
-    private final static Gson gson = new GsonBuilder().registerTypeAdapter(UUID.class, new UUIDTypeAdapter()).create();
+    private static final Gson gson = new GsonBuilder().registerTypeAdapter(UUID.class, new UUIDTypeAdapter()).create();
 
     private static final String UUID_URL = "https://api.mojang.com/users/profiles/minecraft/%s?at=%d";
-    private static final String NAME_URL = "https://api.mojang.com/user/profiles/%s/names";
+    private static final String NAME_URL = "https://sessionserver.mojang.com/session/minecraft/profile/%s";
+
 
     private static final Map<String, UUID> uuidCache = new HashMap<>();
     private static final Map<UUID, String> nameCache = new HashMap<>();
@@ -115,13 +114,12 @@ public class UUIDFetcher {
         try {
             HttpURLConnection connection = (HttpURLConnection) new URL(String.format(NAME_URL, UUIDTypeAdapter.fromUUID(uuid))).openConnection();
             connection.setReadTimeout(5000);
-            UUIDFetcher[] nameHistory = gson.fromJson(new BufferedReader(new InputStreamReader(connection.getInputStream())), UUIDFetcher[].class);
-            UUIDFetcher currentNameData = nameHistory[nameHistory.length - 1];
+            UUIDFetcher data = gson.fromJson(new BufferedReader(new InputStreamReader(connection.getInputStream())), UUIDFetcher.class);
 
-            uuidCache.put(currentNameData.name.toLowerCase(), uuid);
-            nameCache.put(uuid, currentNameData.name);
+            uuidCache.put(data.name.toLowerCase(), uuid);
+            nameCache.put(uuid, data.name);
 
-            return currentNameData.name;
+            return data.name;
         } catch (Exception ignored) {
         }
 
