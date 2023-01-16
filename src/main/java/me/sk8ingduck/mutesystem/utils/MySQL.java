@@ -1,5 +1,8 @@
 package me.sk8ingduck.mutesystem.utils;
 
+import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.TextComponent;
+
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -9,11 +12,12 @@ import java.util.function.Consumer;
 public class MySQL {
     private Connection con;
 
-    public MySQL(String host, String port, String username, String password, String database) {
+    public MySQL(String host, int port, String username, String password, String database) {
         try {
-            con = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/",
-                    username, password);
+            con = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/", username, password);
         } catch (SQLException e) {
+            ProxyServer.getInstance().getConsole().sendMessage(new TextComponent("§c[MuteSystem] MySQL Connection could not be established. " +
+                    "Please check your MySQL Credentials in the mysql.yml config file.\n"));
             e.printStackTrace();
         }
 

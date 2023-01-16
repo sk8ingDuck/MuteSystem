@@ -1,8 +1,8 @@
 package me.sk8ingduck.mutesystem.commands;
 
 import me.sk8ingduck.mutesystem.MuteSystem;
+import me.sk8ingduck.mutesystem.config.MessagesConfig;
 import me.sk8ingduck.mutesystem.utils.MuteRecord;
-import me.sk8ingduck.mutesystem.utils.Config;
 import me.sk8ingduck.mutesystem.utils.UUIDFetcher;
 import me.sk8ingduck.mutesystem.utils.Util;
 import net.md_5.bungee.api.CommandSender;
@@ -13,11 +13,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Muteinfo extends Command {
 
-    Config config;
+    MessagesConfig config;
 
     public Muteinfo(String name, String permission, String... aliases) {
         super(name, permission, aliases);
-        config = MuteSystem.getBs().getConfig();
+        config = MuteSystem.getBs().getMessagesConfig();
     }
 
     @Override

@@ -1,6 +1,7 @@
 package me.sk8ingduck.mutesystem.commands;
 
 import me.sk8ingduck.mutesystem.MuteSystem;
+import me.sk8ingduck.mutesystem.config.MessagesConfig;
 import me.sk8ingduck.mutesystem.utils.*;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -12,10 +13,10 @@ import java.time.LocalDateTime;
 
 public class Mute extends Command {
 
-    Config config;
+    MessagesConfig config;
     public Mute(String name, String permission, String... aliases) {
         super(name, permission, aliases);
-        config = MuteSystem.getBs().getConfig();
+        config = MuteSystem.getBs().getMessagesConfig();
     }
 
     @Override
@@ -93,7 +94,7 @@ public class Mute extends Command {
 
         ProxiedPlayer p1 = ProxyServer.getInstance().getPlayer(playerName);
         if (p1 != null) {
-            p1.sendMessage(new TextComponent(MuteSystem.getBs().getConfig().get("mutesystem.mutemessage")
+            p1.sendMessage(new TextComponent(MuteSystem.getBs().getMessagesConfig().get("mutesystem.mutemessage")
                     .replaceAll("%REASON%", reason)
                     .replaceAll("%MUTED_BY%", mutedByName)
                     .replaceAll("%REMAINING_TIME%", TimeHelper.getDifference(start, end))));

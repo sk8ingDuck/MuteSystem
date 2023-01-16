@@ -2,6 +2,7 @@ package me.sk8ingduck.mutesystem.utils;
 
 
 import me.sk8ingduck.mutesystem.MuteSystem;
+import me.sk8ingduck.mutesystem.config.MessagesConfig;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -59,7 +60,7 @@ public class TimeHelper {
      * @return the formatted difference as string
      */
     public static String getDifference(LocalDateTime start, LocalDateTime end) {
-        Config config = MuteSystem.getBs().getConfig();
+        MessagesConfig config = MuteSystem.getBs().getMessagesConfig();
 
         Duration duration = Duration.between(start, end);
         long years = duration.toDaysPart() / 365;
