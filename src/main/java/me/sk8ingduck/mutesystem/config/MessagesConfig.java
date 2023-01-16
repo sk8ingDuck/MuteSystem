@@ -97,7 +97,7 @@ public class MessagesConfig extends Config {
 	}
 
 	public String get(String path) {
-		return get(path, true);
+		return get(path, false);
 	}
 
 	public String get(String path, boolean prefix) {
