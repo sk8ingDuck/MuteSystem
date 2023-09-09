@@ -1,107 +1,135 @@
 package me.sk8ingduck.mutesystem.config;
 
-import java.util.HashMap;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.*;
 
-public class MessagesConfig extends Config {
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-	private final HashMap<String, String> messages;
+public abstract class MessagesConfig extends Config {
+
+	private static final String COMPONENT_REGEX
+			= "(.*?)\\s*\\{(?:(hovertext:\\s*((?s:.)*?))?(?:,\\s*)?(command:\\s*((?s:.)*?))?(?:,\\s*)?(hovertext:\\s*((?s:.)*?))?)?}";
+
+	private static final String COMPONENT_PATH_REGEX = "\\{(.+?)}";
+	protected LinkedHashMap<String, String> messages;
 
 	public MessagesConfig(String name, String path) {
 		super(name, path);
 
-		this.messages = new HashMap<>();
-
-		messages.put("mutesystem.prefix", "&4MuteSystem &7» ");
-		messages.put("mutesystem.consolename", "CONSOLE");
-		messages.put("mutesystem.playernotfound", "&cSpieler %PLAYER% nicht gefunden.");
-		messages.put("mutesystem.alreadymuted", "&cSpieler %PLAYER% ist bereits gemutet. Benutze /muteinfo %PLAYER%");
-		messages.put("mutesystem.help", """
-				&7----------------- &eMuteSystem &7-----------------
-				&7/mute &a<Spieler> [<Zeit>] <Grund> &8- &7Mute einen Spieler
-				&7/unmute &a<Spieler> &8- &7Entmute einen Spieler
-				&7/muteinfo &a<Spieler> &8- &7Mutehistorie von Spieler ansehen
-				&7/clearmutes &a<Spieler> &8- &7Lösche alle Muteeinträge
-				&7----------------- &eMuteSystem &7-----------------""");
-
-		messages.put("mutesystem.mute.syntax", "&cSyntax: /mute <Spieler> [<Zeit>] <Grund>");
-		messages.put("mutesystem.mute.successful", """
-				&7Spieler &c%PLAYER% &7wurde von &c%MUTED_BY% &7gemutet.
-				&7Grund: &c%REASON%
-				&7Zeit: &c%TIME%""");
-
-		messages.put("mutesystem.unmute.syntax", "&cSyntax: /unmute <Spieler> [<Grund>]");
-		messages.put("mutesystem.unmute.notmuted", "&cSpieler &e%PLAYER% &cist nicht gemutet.");
-		messages.put("mutesystem.unmute.successful", "&7Spieler &e%PLAYER% &7wurde von &e%UNMUTED_BY% &7entmutet." +
-				"\n&7Grund: &e%REASON%");
-		messages.put("mutesystem.unmute.youarenolongermuted", "&7Spieler &e%PLAYER% &7hat dich entmutet." +
-				"\n&7Grund: &e%REASON%");
-
-		messages.put("mutesystem.muteinfo.syntax", "&cSyntax: /muteinfo <Spieler>");
-		messages.put("mutesystem.muteinfo.nocurrentmute", "&cSpieler %PLAYER% ist aktuell nicht gemutet.");
-		messages.put("mutesystem.muteinfo.currentmute", """
-				&8------- &eaktueller Mute von &e%PLAYER% &8-------
-				&7Grund: &e%REASON%
-				&7Gemutet von: &e%MUTED_BY%
-				&7Gemutet am: &e%MUTE_START%
-				&7Gemutet bis: &e%MUTE_END%
-				&7Mutedauer: &e%DURATION%
-				&7Verbleibende Zeit: &e%REMAINING_TIME%
-				&8------- &eaktueller Mute von &e%PLAYER% &8-------""");
-		messages.put("mutesystem.muteinfo.nopastmute", "&cSpieler %PLAYER% hat keine früheren Mutes.");
-
-		messages.put("mutesystem.muteinfo.pastmuteUnmuted", """
-				&8------- &eFrüherer Mute von von &e%PLAYER% &7(&e%INDEX%&7) &8-------
-				&7Grund: &e%REASON%
-				&7Gemutet von: &e%MUTED_BY%
-				&7Gemutet am: &e%MUTE_START%
-				&7Gemutet bis: &e%MUTE_END%
-				&7Mutedauer: &e%DURATION%
-				&7Wurde entmutet: &aJA
-				&7Entmutet von: &e%UNMUTED_BY%
-				&7Entmutegrund: &e%UNMUTE_REASON%
-				&7Entmutenzeit: &e%UNMUTE_TIME%
-				&8------- &eFrüherer Mute von von &e%PLAYER% &7(&e%INDEX%&7) &8-------""");
-		messages.put("mutesystem.muteinfo.pastmuteNotunmuted", """
-				&8------- &eFrüherer Mute von von &e%PLAYER% &7(&e%INDEX%&7) &8-------
-				&7Grund: &e%REASON%
-				&7Gemutet von: &e%MUTED_BY%
-				&7Gemutet am: &e%MUTE_START%
-				&7Gemutet bis: &e%MUTE_END%
-				&7Mutedauer: &e%DURATION%
-				&7Wurde entmutet: &cNEIN
-				&8------- &eFrüherer Mute von von &e%PLAYER% &7(&e%INDEX%&7) &8-------""");
-
-		messages.put("mutesystem.clearmutes.syntax", "&cSyntax: /clearmutes <Spieler>");
-		messages.put("mutesystem.clearmutes.successful", "&4!! &7Muteeinträge von &e%PLAYER% &7wurden von &e%UNMUTED_BY% &7gelöscht &4!!");
-		messages.put("mutesystem.unmute.allmutesremoved", "&7Alle deine Mutes wurden von &e%PLAYER% &7entfernt :O");
-
-		messages.put("mutesystem.mutemessage", """
-				&cDu wurdest gemutet.
-				&eGrund: &c%REASON%
-				&eGemutet von: &c%MUTED_BY%
-				&eVerbleibende Zeit: &c%REMAINING_TIME%""");
-
-		messages.put("mutesystem.timeformat.years", " Jahre ");
-		messages.put("mutesystem.timeformat.year", " Jahr ");
-		messages.put("mutesystem.timeformat.days", " Tage ");
-		messages.put("mutesystem.timeformat.day", " Tag ");
-		messages.put("mutesystem.timeformat.hours", " Stunden ");
-		messages.put("mutesystem.timeformat.hour", " Stunde ");
-		messages.put("mutesystem.timeformat.minutes", " Minuten ");
-		messages.put("mutesystem.timeformat.minute", " Minute ");
-		messages.put("mutesystem.timeformat.seconds", " Sekunden ");
-		messages.put("mutesystem.timeformat.second", " Sekunde ");
-		messages.put("mutesystem.timeformat.permanent", "PERMANENT");
+		this.messages = new LinkedHashMap<>();
+		loadMessages();
+		loadTextComponents();
 
 		messages.forEach((messagePath, message) -> messages.put(messagePath, (String) getPathOrSet(messagePath, message)));
 	}
 
-	public String get(String path) {
-		return get(path, false);
+	public abstract void loadMessages();
+
+	public abstract void loadTextComponents();
+
+	private TextComponent parseChatComponent(String message, String... replacements) {
+		if (message == null) return null;
+
+		// Pattern to match the format: TEXT {hovertext: TEXT, command: /command}
+		Pattern pattern = Pattern.compile(COMPONENT_REGEX, Pattern.DOTALL);
+
+		Matcher matcher = pattern.matcher(message);
+
+		if (!matcher.find()) return null;
+		String text = replacePlaceholders(matcher.group(1), replacements);
+		String hoverText = matcher.group(3) != null ? matcher.group(3) : matcher.group(7);
+
+		TextComponent textComponent = new TextComponent(text);
+
+		String command = matcher.group(5);
+		if (command != null) {
+			command = replacePlaceholders(command, replacements);
+			textComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command));
+		}
+
+		if (hoverText != null) {
+			hoverText = replacePlaceholders(hoverText, replacements);
+			textComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+					new ComponentBuilder(ChatColor.translateAlternateColorCodes('&', hoverText)).create()));
+		}
+
+		return textComponent;
+
 	}
 
-	public String get(String path, boolean prefix) {
-		return ((prefix ? messages.get("mutesystem.prefix") : "") + messages.get(path));
+	public BaseComponent[] get(String path, boolean prefix, String... replacements) {
+		List<BaseComponent> finalComponents = new ArrayList<>();
+
+		// Add the prefix if requested
+		if (prefix) {
+			finalComponents.add(new TextComponent(messages.get("mutesystem.prefix")));
+		}
+
+		String content = replacePlaceholders(messages.get(path), replacements);
+
+		// Check if content contains pattern {path.to.textcomponent}
+		Pattern pattern = Pattern.compile(COMPONENT_PATH_REGEX);
+		Matcher matcher = pattern.matcher(content);
+
+		int lastIndex = 0;
+
+		// Replace all occurrences of the pattern with the corresponding TextComponent
+		while (matcher.find()) {
+			String beforeMatch = content.substring(lastIndex, matcher.start());
+			String textComponentPath = matcher.group(1);
+			lastIndex = matcher.end();
+
+			// Replace all replacements in the text before the match
+			beforeMatch = replacePlaceholders(beforeMatch, replacements);
+
+			// Add the text before the match
+			if (!beforeMatch.isEmpty()) {
+				finalComponents.add(new TextComponent(beforeMatch));
+			}
+
+			// Add the TextComponent from parseChatComponent
+			TextComponent textComponent = parseChatComponent(messages.get("textcomponents." + textComponentPath), replacements);
+			if (textComponent != null)
+				finalComponents.add(textComponent);
+			else
+				System.out.println("§c[MuteSystem] Failed to parse TextComponent {" + textComponentPath + "}. " +
+						"Most likely is that it has a wrong format! Format should be:\n" +
+						"Your text {hovertext: Your text on hover, command: /yourCommand}");
+		}
+
+		// Add the remaining text after the last match
+		String afterLastMatch = content.substring(lastIndex);
+		if (!afterLastMatch.isEmpty()) {
+			finalComponents.add(new TextComponent(afterLastMatch));
+		}
+
+		return finalComponents.toArray(new BaseComponent[0]);
 	}
 
+	public BaseComponent[] get(String path, String... replacements) {
+		return get(path, true, replacements);
+	}
+
+	private String replacePlaceholders(String text, String... replacements) {
+		for (int i = 0; i < replacements.length; i += 2) {
+			String toReplace = replacements[i];
+			String replacement = replacements[i + 1];
+			text = text.replaceAll(toReplace, replacement);
+		}
+		return text;
+	}
+
+	public String getString(String path) {
+		return messages.get(path);
+	}
+
+	public void reload() {
+		super.reload();
+
+		messages.forEach((messagePath, message) -> messages.put(messagePath, (String) getPathOrSet(messagePath, message)));
+	}
 }

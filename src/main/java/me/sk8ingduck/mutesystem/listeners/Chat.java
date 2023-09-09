@@ -40,9 +40,9 @@ public class Chat implements Listener {
         event.setMessage(null);
 
         Util.UUIDtoName(muteRecord.getMutedBy(), mutedByName ->
-                player.sendMessage(new TextComponent(MuteSystem.getBs().getMessagesConfig().get("mutesystem.mutemessage")
-                        .replaceAll("%REASON%", muteRecord.getReason())
-                        .replaceAll("%MUTED_BY%", mutedByName)
-                        .replaceAll("%REMAINING_TIME%", muteRecord.getRemaining()))));
+                player.sendMessage(MuteSystem.getBs().getMessagesConfig().get("mutesystem.mutemessage",
+                        "%REASON%", muteRecord.getReason(),
+                        "%MUTED_BY%", mutedByName,
+                        "%REMAINING_TIME%", muteRecord.getRemaining())));
     }
 }

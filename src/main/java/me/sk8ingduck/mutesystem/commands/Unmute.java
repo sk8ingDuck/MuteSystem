@@ -14,17 +14,15 @@ import java.time.LocalDateTime;
 
 public class Unmute extends Command {
 
-    MessagesConfig config;
-
     public Unmute(String name, String permission, String... aliases) {
         super(name, permission, aliases);
-        config = MuteSystem.getBs().getMessagesConfig();
     }
 
     @Override
     public void execute(CommandSender sender, String[] args) {
+        MessagesConfig config = MuteSystem.getBs().getMessagesConfig();
         if (args.length == 0) {
-            sender.sendMessage(new TextComponent(config.get("mutesystem.unmute.syntax", true)));
+            sender.sendMessage(config.get("mutesystem.unmute.syntax", true));
             return;
         }
 
@@ -32,14 +30,14 @@ public class Unmute extends Command {
 
         UUIDFetcher.getUUID(playerName, uuid -> {
             if (uuid == null) {
-                sender.sendMessage(new TextComponent(config.get("mutesystem.playernotfound", true)
-                        .replaceAll("%PLAYER%", playerName)));
+                sender.sendMessage(config.get("mutesystem.playernotfound", true,
+                        "%PLAYER%", playerName));
                 return;
             }
             MuteSystem.getBs().getSql().getMute(uuid.toString(), record -> {
                 if (record == null) {
-                    sender.sendMessage(new TextComponent(config.get("mutesystem.unmute.notmuted", true)
-                            .replaceAll("%PLAYER%", playerName)));
+                    sender.sendMessage(config.get("mutesystem.unmute.notmuted", true,
+                            "%PLAYER%", playerName));
                     return;
                 }
 
@@ -56,8 +54,8 @@ public class Unmute extends Command {
                                     unmutedByUuid.toString(), unmuteReason.toString(), LocalDateTime.now()));
                 } else {
                     unmute(playerName, uuid.toString(), record.getMutedBy(), record.getReason(),
-                            record.getStartDate(), record.getEndDate(), config.get("mutesystem.consolename"),
-                            config.get("mutesystem.consolename"), unmuteReason.toString(), LocalDateTime.now());
+                            record.getStartDate(), record.getEndDate(), config.getString("mutesystem.consolename"),
+                            config.getString("mutesystem.consolename"), unmuteReason.toString(), LocalDateTime.now());
                 }
             });
         });
@@ -69,19 +67,19 @@ public class Unmute extends Command {
         MuteSystem.getBs().getSql().unmuteAsync(playerUuid, mutedByUuid, muteReason, start, end, unmutedByUuid,
                 unmuteReason, unmuteTime);
 
-        Util.broadcastMessage(config.get("mutesystem.unmute.successful")
-                        .replaceAll("%PLAYER%", playerName)
-                        .replaceAll("%UNMUTED_BY%", unmutedByName)
-                        .replaceAll("%REASON%", unmuteReason),
+        Util.broadcastMessage(MuteSystem.getBs().getMessagesConfig().get("mutesystem.unmute.successful",
+                        "%PLAYER%", playerName,
+                        "%UNMUTED_BY%", unmutedByName,
+                        "%REASON%", unmuteReason),
                 "mutesystem.unmute");
 
         ProxiedPlayer p1 = ProxyServer.getInstance().getPlayer(playerName);
         if (p1 != null) {
             MuteSystem.getBs().getMutes().put(p1.getName(), null);
-            p1.sendMessage(new TextComponent(config.get("mutesystem.unmute.youarenolongermuted")
-                    .replaceAll("%PLAYER%", unmutedByName)
-                    .replaceAll("%UNMUTED_BY", unmutedByName)
-                    .replaceAll("%REASON%", unmuteReason)));
+            p1.sendMessage(MuteSystem.getBs().getMessagesConfig().get("mutesystem.unmute.youarenolongermuted",
+                    "%PLAYER%", unmutedByName,
+                    "%UNMUTED_BY", unmutedByName,
+                    "%REASON%", unmuteReason));
         }
     }
 }

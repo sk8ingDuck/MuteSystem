@@ -54,7 +54,7 @@ public class TimeHelper {
     }
 
     /**
-     * Calculate difference between to dates and return as string format
+     * Calculate difference between two dates and return as string format
      * @param start the start date
      * @param end the end date
      * @return the formatted difference as string
@@ -63,18 +63,50 @@ public class TimeHelper {
         MessagesConfig config = MuteSystem.getBs().getMessagesConfig();
 
         Duration duration = Duration.between(start, end);
-        long years = duration.toDaysPart() / 365;
-        if (years > 100) return config.get("mutesystem.timeformat.permanent");
-        long days = duration.toDaysPart() % 365;
-        int hours = duration.toHoursPart();
-        int minutes = duration.toMinutesPart();
-        int seconds = duration.toSecondsPart();
+        long years = duration.toDays() / 365;
+        if (years > 100) return config.getString("mutesystem.timeformat.permanent");
+        long days = duration.toDays() % 365;
+        long hours = duration.toHours() % 24;
+        long minutes = duration.toMinutes() % 60;
+        long seconds = duration.getSeconds() % 60;
 
-        return (years == 1 ? years + config.get("mutesystem.timeformat.year") : (years != 0) ? years + config.get("mutesystem.timeformat.years") : "") +
-                (days == 1 ? days + config.get("mutesystem.timeformat.day") : (days != 0) ? days + config.get("mutesystem.timeformat.days") : "") +
-                (hours == 1 ? hours + config.get("mutesystem.timeformat.hour"): (hours != 0) ? hours + config.get("mutesystem.timeformat.hours") : "") +
-                (minutes == 1 ? minutes + config.get("mutesystem.timeformat.minute") : (minutes != 0) ? minutes + config.get("mutesystem.timeformat.minutes") : "") +
-                (seconds == 1 ? seconds + config.get("mutesystem.timeformat.second") : (seconds != 0) ? seconds + config.get("mutesystem.timeformat.seconds") : "");
+        return (years == 1 ? years + config.getString("mutesystem.timeformat.year") : (years != 0) ? years + config.getString("mutesystem.timeformat.years") : "") +
+                (days == 1 ? days + config.getString("mutesystem.timeformat.day") : (days != 0) ? days + config.getString("mutesystem.timeformat.days") : "") +
+                (hours == 1 ? hours + config.getString("mutesystem.timeformat.hour"): (hours != 0) ? hours + config.getString("mutesystem.timeformat.hours") : "") +
+                (minutes == 1 ? minutes + config.getString("mutesystem.timeformat.minute") : (minutes != 0) ? minutes + config.getString("mutesystem.timeformat.minutes") : "") +
+                (seconds == 1 ? seconds + config.getString("mutesystem.timeformat.second") : (seconds != 0) ? seconds + config.getString("mutesystem.timeformat.seconds") : "");
+    }
+
+    public static String formatTime(String time) {
+        MessagesConfig config = MuteSystem.getBs().getMessagesConfig();
+
+        Pattern pattern = Pattern.compile(timeAddFormat);
+        Matcher matcher = pattern.matcher(time);
+
+        if (!matcher.find()) return "Invalid";
+
+        int timeValue = Integer.parseInt(matcher.group(1));
+        String timeUnit = matcher.group(2);
+
+        if (timeUnit.equals("s")) {
+            return timeValue + config.getString("mutesystem.timeformat.second" + (timeValue != 1 ? "s" : ""));
+        }
+        if (timeUnit.equals("m")) {
+            return timeValue + config.getString("mutesystem.timeformat.minute" + (timeValue != 1 ? "s" : ""));
+        }
+        if (timeUnit.equals("h")) {
+            return timeValue + config.getString("mutesystem.timeformat.hour" + (timeValue != 1 ? "s" : ""));
+        }
+        if (timeUnit.equals("d")) {
+            return timeValue + config.getString("mutesystem.timeformat.day" + (timeValue != 1 ? "s" : ""));
+        }
+        if (timeUnit.equals("y")) {
+            if (timeValue > 100) {
+                return config.getString("mutesystem.timeformat.permanent");
+            }
+            return timeValue + config.getString("mutesystem.timeformat.year" + (timeValue != 1 ? "s" : ""));
+        }
+        return "Invalid";
     }
 
 }

@@ -59,7 +59,7 @@ public class MuteRecord {
 
     public String getEnd() {
         if ((Duration.between(LocalDateTime.now(), end).toDays() / 365) > 100) {
-            return MuteSystem.getBs().getMessagesConfig().get("mutesystem.timeformat.permanent");
+            return MuteSystem.getBs().getMessagesConfig().getString("mutesystem.timeformat.permanent");
         }
         return end.format(TimeHelper.formatter);
     }

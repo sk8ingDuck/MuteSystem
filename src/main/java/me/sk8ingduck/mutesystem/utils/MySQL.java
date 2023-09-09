@@ -1,5 +1,7 @@
 package me.sk8ingduck.mutesystem.utils;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 
@@ -10,26 +12,21 @@ import java.util.Comparator;
 import java.util.function.Consumer;
 
 public class MySQL {
-    private Connection con;
+	private final HikariDataSource dataSource;
 
     public MySQL(String host, int port, String username, String password, String database) {
-        try {
-            con = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/", username, password);
-        } catch (SQLException e) {
-            ProxyServer.getInstance().getConsole().sendMessage(new TextComponent("§c[MuteSystem] MySQL Connection could not be established. " +
-                    "Please check your MySQL Credentials in the mysql.yml config file.\n"));
-            e.printStackTrace();
-        }
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl("jdbc:mysql://" + host + ":" + port + "/" + database + "?autoReconnect=true");
+        config.setUsername(username);
+        config.setPassword(password);
+        config.addDataSourceProperty("cachePrepStmts", "true");
+        config.addDataSourceProperty("prepStmtCacheSize", "250");
+        config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
 
-        setup(database);
-    }
+        dataSource = new HikariDataSource(config);
 
-    private void setup(String database) {
-        try {
-            Statement stmt = con.createStatement();
-            stmt.executeUpdate("CREATE DATABASE IF NOT EXISTS " + database);
-            stmt.executeUpdate("USE " + database);
-
+        try (Connection connection = dataSource.getConnection()) {
+            Statement stmt = connection.createStatement();
             stmt.executeUpdate("CREATE TABLE IF NOT EXISTS currentMutes(" +
                     "UUID VARCHAR(40) PRIMARY KEY, " +
                     "mutedBy VARCHAR(40), " +
@@ -52,18 +49,40 @@ public class MySQL {
                     "muteTime DATETIME, " +
                     "unmuteTime DATETIME, " +
                     "PRIMARY KEY(UUID, muteTime))");
+
+            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS users(" +
+                    "uuid VARCHAR(36) PRIMARY KEY, " +
+                    "password VARCHAR(255), " +
+                    "canBan BOOLEAN, " +
+                    "canUnban BOOLEAN, " +
+                    "canDeletePastBans BOOLEAN, " +
+                    "canMute BOOLEAN, " +
+                    "canUnmute BOOLEAN, " +
+                    "canDeletePastMutes BOOLEAN, " +
+                    "canEditUsers BOOLEAN);");
+
+            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS muteTemplates(" +
+                    "id INT AUTO_INCREMENT PRIMARY KEY, " +
+                    "time VARCHAR(8)," +
+                    "reason VARCHAR(128))");
+
             stmt.close();
         } catch (SQLException e) {
+            ProxyServer.getInstance().getConsole().sendMessage(new TextComponent("§c[MuteSystem] MySQL Connection could not be established. Error:"));
             e.printStackTrace();
         }
     }
 
+    public void close() {
+        dataSource.close();
+    }
 
-    private MuteRecord getMute(String uuid) {
+    public MuteRecord getMute(String uuid) {
         MuteRecord muteRecord = null;
-        try {
-            Statement stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT * FROM currentMutes WHERE UUID = '" + uuid + "'");
+        try (Connection con = dataSource.getConnection();
+             PreparedStatement stmt = con.prepareStatement("SELECT * FROM currentMutes WHERE UUID = ?")) {
+            stmt.setString(1, uuid);
+            ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 LocalDateTime start = rs.getTimestamp("startTime").toLocalDateTime();
                 LocalDateTime end = rs.getTimestamp("endTime").toLocalDateTime();
@@ -72,20 +91,21 @@ public class MySQL {
                 String reason = rs.getString("reason");
 
                 if (LocalDateTime.now().minusSeconds(2).isAfter(end)) {
-                    Statement deleteStmt = con.createStatement();
-                    deleteStmt.executeUpdate("DELETE FROM currentMutes WHERE UUID = '" + uuid + "'");
-                    deleteStmt.executeUpdate("INSERT INTO pastMutes VALUES(" +
-                            "'" + uuid + "', " +
-                            "'" + mutedBy + "', " +
-                            "'" + reason + "', " +
-                            "'" + start + "', " +
-                            "'" + end + "')");
-                    deleteStmt.close();
+                    try (PreparedStatement deleteStmt = con.prepareStatement("DELETE FROM currentMutes WHERE UUID = ?");
+                         PreparedStatement insertStmt = con.prepareStatement("INSERT INTO pastMutes VALUES (?, ?, ?, ?, ?)")) {
+                        deleteStmt.setString(1, uuid);
+                        deleteStmt.executeUpdate();
+                        insertStmt.setString(1, uuid);
+                        insertStmt.setString(2, mutedBy);
+                        insertStmt.setString(3, reason);
+                        insertStmt.setTimestamp(4, Timestamp.valueOf(start));
+                        insertStmt.setTimestamp(5, Timestamp.valueOf(end));
+                        insertStmt.executeUpdate();
+                    }
                 } else {
                     muteRecord = new MuteRecord(uuid, mutedBy, reason, start, end, false);
                 }
             }
-            stmt.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -95,46 +115,31 @@ public class MySQL {
     public void getMute(String uuid, Consumer<MuteRecord> muteRecord) {
         Util.pool.execute(() -> muteRecord.accept(getMute(uuid)));
     }
-    private ArrayList<MuteRecord> getPastMutes(String uuid) {
+
+    public ArrayList<MuteRecord> getPastMutes(String uuid) {
         ArrayList<MuteRecord> pastMuteRecords = new ArrayList<>();
-        try {
-            Statement stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT " +
-                    "pastmutes.uuid, " +
-                    "mutedBy, " +
-                    "reason, " +
-                    "startTime, " +
-                    "endTime, " +
-                    "(unmutedBy IS NOT NULL) isunmuted, " +
-                    "unmutedBy, " +
-                    "unmuteReason, " +
-                    "unmuteTime " +
-                    "FROM `pastmutes` LEFT JOIN unmutes " +
-                    "ON pastmutes.UUID = unmutes.UUID AND pastmutes.startTime = unmutes.muteTime " +
-                    "WHERE pastmutes.uuid='" + uuid + "'");
-
-            while (rs.next()) {
-                String mutedBy = rs.getString("mutedBy");
-                String reason = rs.getString("reason");
-
-                LocalDateTime start = rs.getTimestamp("startTime").toLocalDateTime();
-                LocalDateTime end = rs.getTimestamp("endTime").toLocalDateTime();
-
-                boolean isunmuted = rs.getBoolean("isunmuted");
-                if (!isunmuted) {
-                    MuteRecord muteRecord = new MuteRecord(uuid, mutedBy, reason, start, end, false);
-                    pastMuteRecords.add(muteRecord);
-                } else {
-                    String unmutedBy = rs.getString("unmutedBy");
-                    String unmuteReason = rs.getString("unmuteReason");
-                    LocalDateTime unmuteTime = rs.getTimestamp("unmuteTime").toLocalDateTime();
-
-                    MuteRecord muteRecord = new MuteRecord(uuid, mutedBy, reason, start, end,
-                            true, unmutedBy, unmuteReason, unmuteTime);
+        try (Connection con = dataSource.getConnection();
+             PreparedStatement stmt = con.prepareStatement("SELECT pastMutes.UUID, mutedBy, reason, startTime, " +
+                     "endTime, (unmutedBy IS NOT NULL) isUnmuted, unmutedBy, unmuteReason, unmuteTime " +
+                     "FROM pastMutes " +
+                     "LEFT JOIN unmutes ON pastMutes.UUID = unmutes.UUID AND pastMutes.startTime = unmutes.muteTime " +
+                     "WHERE pastMutes.uuid=?")) {
+            stmt.setString(1, uuid);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    String mutedBy = rs.getString("mutedBy");
+                    String reason = rs.getString("reason");
+                    LocalDateTime start = rs.getTimestamp("startTime").toLocalDateTime();
+                    LocalDateTime end = rs.getTimestamp("endTime").toLocalDateTime();
+                    boolean isUnmuted = rs.getBoolean(6);
+                    MuteRecord muteRecord = isUnmuted ?
+                            new MuteRecord(uuid, mutedBy, reason, start, end, true,
+                                    rs.getString("unmutedBy"), rs.getString("unmuteReason"),
+                                    rs.getTimestamp("unmuteTime").toLocalDateTime()) :
+                            new MuteRecord(uuid, mutedBy, reason, start, end, false);
                     pastMuteRecords.add(muteRecord);
                 }
             }
-            stmt.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -150,16 +155,16 @@ public class MySQL {
     }
 
 
-    private void mute(String uuid, String mutedBy, String reason, LocalDateTime start, LocalDateTime end) {
-        try {
-            Statement stmt = con.createStatement();
-            stmt.executeUpdate("INSERT INTO currentMutes VALUES(" +
-                    "'" + uuid + "', " +
-                    "'" + mutedBy + "', " +
-                    "'" + reason + "', " +
-                    "'" + start + "', " +
-                    "'" + end + "')");
-            stmt.close();
+    public void mute(String uuid, String mutedBy, String reason, LocalDateTime start, LocalDateTime end) {
+        try (Connection con = dataSource.getConnection();
+             PreparedStatement pstmt = con.prepareStatement("INSERT INTO " +
+                     "currentMutes (UUID, mutedBy, reason, startTime, endTime) VALUES (?, ?, ?, ?, ?)")) {
+            pstmt.setString(1, uuid);
+            pstmt.setString(2, mutedBy);
+            pstmt.setString(3, reason);
+            pstmt.setTimestamp(4, Timestamp.valueOf(start));
+            pstmt.setTimestamp(5, Timestamp.valueOf(end));
+            pstmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -168,26 +173,34 @@ public class MySQL {
     public void muteAsync(String uuid, String mutedBy, String reason, LocalDateTime start, LocalDateTime end) {
         Util.pool.execute(() -> mute(uuid, mutedBy, reason, start, end));
     }
-    private void unmute(String uuid, String mutedByUuid, String reason, LocalDateTime muteStart, LocalDateTime muteEnd,
-                       String unmutedByUuid, String unmuteReason, LocalDateTime unmuteTime) {
-        try {
-            Statement stmt = con.createStatement();
-            stmt.executeUpdate("DELETE FROM currentMutes WHERE UUID = '" + uuid + "'");
-            stmt.executeUpdate("INSERT INTO pastMutes VALUES(" +
-                    "'" + uuid + "', " +
-                    "'" + mutedByUuid + "', " +
-                    "'" + reason + "', " +
-                    "'" + muteStart + "', " +
-                    "'" + muteEnd + "')");
 
-            stmt.executeUpdate("INSERT INTO unmutes VALUES(" +
-                    "'" + uuid + "', " +
-                    "'" + unmutedByUuid + "', " +
-                    "'" + unmuteReason + "', " +
-                    "'" + muteStart + "', " +
-                    "'" + unmuteTime + "')");
+    public void unmute(String uuid, String mutedByUuid, String reason, LocalDateTime muteStart,
+                       LocalDateTime muteEnd, String unmutedByUuid, String unmuteReason, LocalDateTime unmuteTime) {
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement deleteCurrentMutesStmt = conn.prepareStatement("DELETE FROM currentMutes WHERE UUID = ?");
+             PreparedStatement insertPastMutesStmt = conn.prepareStatement("INSERT INTO pastMutes VALUES (?, ?, ?, ?, ?)");
+             PreparedStatement insertUnmutesStmt = conn.prepareStatement("INSERT INTO unmutes VALUES (?, ?, ?, ?, ?)")) {
 
-            stmt.close();
+            conn.setAutoCommit(false);
+
+            deleteCurrentMutesStmt.setString(1, uuid);
+            deleteCurrentMutesStmt.executeUpdate();
+
+            insertPastMutesStmt.setString(1, uuid);
+            insertPastMutesStmt.setString(2, mutedByUuid);
+            insertPastMutesStmt.setString(3, reason);
+            insertPastMutesStmt.setTimestamp(4, Timestamp.valueOf(muteStart));
+            insertPastMutesStmt.setTimestamp(5, Timestamp.valueOf(muteEnd));
+            insertPastMutesStmt.executeUpdate();
+
+            insertUnmutesStmt.setString(1, uuid);
+            insertUnmutesStmt.setString(2, unmutedByUuid);
+            insertUnmutesStmt.setString(3, unmuteReason);
+            insertUnmutesStmt.setTimestamp(4, Timestamp.valueOf(muteStart));
+            insertUnmutesStmt.setTimestamp(5, Timestamp.valueOf(unmuteTime));
+            insertUnmutesStmt.executeUpdate();
+
+            conn.commit();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -198,14 +211,20 @@ public class MySQL {
         Util.pool.execute(() -> unmute(uuid, mutedByUuid, reason, muteStart, muteEnd, unmutedByUuid, unmuteReason, unmuteTime));
     }
 
-    private void clearMutes(String uuid) {
-        try {
-            Statement stmt = con.createStatement();
-            stmt.executeUpdate("DELETE FROM currentMutes WHERE UUID = '" + uuid + "'");
-            stmt.executeUpdate("DELETE FROM pastMutes WHERE UUID = '" + uuid + "'");
-            stmt.executeUpdate("DELETE FROM unmutes WHERE UUID = '" + uuid + "'");
+    public void clearMutes(String uuid) {
+        try (Connection con = dataSource.getConnection();
+             PreparedStatement deleteCurrentMutesStmt = con.prepareStatement("DELETE FROM currentMutes WHERE UUID = ?");
+             PreparedStatement deletePastMutesStmt = con.prepareStatement("DELETE FROM pastMutes WHERE UUID = ?");
+             PreparedStatement deleteUnmutesStmt = con.prepareStatement("DELETE FROM unmutes WHERE UUID = ?")) {
 
-            stmt.close();
+            deleteCurrentMutesStmt.setString(1, uuid);
+            deletePastMutesStmt.setString(1, uuid);
+            deleteUnmutesStmt.setString(1, uuid);
+
+            deleteCurrentMutesStmt.executeUpdate();
+            deletePastMutesStmt.executeUpdate();
+            deleteUnmutesStmt.executeUpdate();
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -213,5 +232,70 @@ public class MySQL {
 
     public void clearMutesAsync(String uuid) {
         Util.pool.execute(() -> clearMutes(uuid));
+    }
+
+    public ArrayList<MuteTemplate> getMuteTemplates() {
+        ArrayList<MuteTemplate> muteTemplates = new ArrayList<>();
+        try (Connection con = dataSource.getConnection();
+             PreparedStatement stmt = con.prepareStatement("SELECT * FROM muteTemplates ORDER BY id");
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                muteTemplates.add(new MuteTemplate(rs.getInt("id"),  rs.getString("time"), rs.getString("reason")));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return muteTemplates;
+    }
+
+    public MuteTemplate getMuteTemplate(int id) {
+        try (Connection con = dataSource.getConnection();
+             PreparedStatement stmt = con.prepareStatement("SELECT * FROM muteTemplates WHERE id = ?")) {
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new MuteTemplate(rs.getInt("id"), rs.getString("time"), rs.getString("reason"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public void getMuteTemplateAsync(int id, Consumer<MuteTemplate> muteTemplate) {
+        Util.pool.execute(() -> muteTemplate.accept(getMuteTemplate(id)));
+    }
+
+    public void addMuteTemplate(String time, String reason) {
+        try (Connection con = dataSource.getConnection();
+             PreparedStatement pstmt = con.prepareStatement("INSERT INTO muteTemplates (time, reason) VALUES (?, ?)")) {
+            pstmt.setString(1, time);
+            pstmt.setString(2, reason);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void editMuteTemplate(int id, String newTime, String newReason) {
+        try (Connection con = dataSource.getConnection();
+             PreparedStatement deleteTemplateStmt = con.prepareStatement("UPDATE muteTemplates SET time = ?, reason= ? WHERE id = ?")) {
+            deleteTemplateStmt.setString(1, newTime);
+            deleteTemplateStmt.setString(2, newReason);
+            deleteTemplateStmt.setInt(3, id);
+            deleteTemplateStmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    public void removeMuteTemplate(int id) {
+        try (Connection con = dataSource.getConnection();
+             PreparedStatement deleteTemplateStmt = con.prepareStatement("DELETE FROM muteTemplates WHERE id = ?")) {
+            deleteTemplateStmt.setInt(1, id);
+            deleteTemplateStmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

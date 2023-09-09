@@ -1,3 +1,4 @@
 name: Mutesystem
 version: '${project.version}'
+author: sk8ingDuck
 main: me.sk8ingduck.mutesystem.MuteSystem
