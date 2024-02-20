@@ -35,7 +35,7 @@ public class Muteinfo extends Command {
                 return;
             }
 
-            MuteSystem.getBs().getSql().getMute(uuid.toString(), currentMuteRecord -> {
+            MuteSystem.getBs().getSql().getMute(uuid, currentMuteRecord -> {
                 if (currentMuteRecord == null) {
                     sender.sendMessage(config.get("mutesystem.muteinfo.nocurrentmute",
                             true, "%PLAYER%", playerName));
@@ -53,7 +53,7 @@ public class Muteinfo extends Command {
             });
 
 
-            MuteSystem.getBs().getSql().getPastMutes(uuid.toString(), pastMuteRecords -> {
+            MuteSystem.getBs().getSql().getPastMutes(uuid, pastMuteRecords -> {
                 if (pastMuteRecords == null || pastMuteRecords.isEmpty()) {
                     sender.sendMessage(config.get("mutesystem.muteinfo.nopastmute", true,
                             "%PLAYER%", playerName));

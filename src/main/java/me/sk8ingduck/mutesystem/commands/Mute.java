@@ -45,7 +45,7 @@ public class Mute extends Command {
                 return;
             }
 
-            MuteSystem.getBs().getSql().getMute(uuid.toString(), muteRecord -> {
+            MuteSystem.getBs().getSql().getMute(uuid, muteRecord -> {
                 if (muteRecord != null) {
                     sender.sendMessage(config.get("mutesystem.alreadymuted", true,
                             "%PLAYER%", playerName));
@@ -75,10 +75,10 @@ public class Mute extends Command {
                         }
 
                         if (sender instanceof ProxiedPlayer) {
-                            UUIDFetcher.getUUID(sender.getName(), mutedByUuid -> mute(playerName, uuid.toString(),
-                                    sender.getName(), mutedByUuid.toString(), muteTemplate.getReason(), start, end));
+                            UUIDFetcher.getUUID(sender.getName(), mutedByUuid -> mute(playerName, uuid,
+                                    sender.getName(), mutedByUuid, muteTemplate.getReason(), start, end));
                         } else {
-                            mute(playerName, uuid.toString(), config.getString("mutesystem.consolename"),
+                            mute(playerName, uuid, config.getString("mutesystem.consolename"),
                                     config.getString("mutesystem.consolename"), muteTemplate.getReason(), start, end);
                         }
                     });
@@ -116,10 +116,10 @@ public class Mute extends Command {
                 //mute
                 if (sender instanceof ProxiedPlayer) {
                     LocalDateTime finalEnd = end;
-                    UUIDFetcher.getUUID(sender.getName(), mutedByUuid -> mute(playerName, uuid.toString(),
-                            sender.getName(), mutedByUuid.toString(), reason, start, finalEnd));
+                    UUIDFetcher.getUUID(sender.getName(), mutedByUuid -> mute(playerName, uuid,
+                            sender.getName(), mutedByUuid, reason, start, finalEnd));
                 } else {
-                    mute(playerName, uuid.toString(), config.getString("mutesystem.consolename"),
+                    mute(playerName, uuid, config.getString("mutesystem.consolename"),
                             config.getString("mutesystem.consolename"), reason, start, end);
                 }
             });

@@ -34,7 +34,7 @@ public class Unmute extends Command {
                         "%PLAYER%", playerName));
                 return;
             }
-            MuteSystem.getBs().getSql().getMute(uuid.toString(), record -> {
+            MuteSystem.getBs().getSql().getMute(uuid, record -> {
                 if (record == null) {
                     sender.sendMessage(config.get("mutesystem.unmute.notmuted", true,
                             "%PLAYER%", playerName));
@@ -49,11 +49,11 @@ public class Unmute extends Command {
 
                 if (sender instanceof ProxiedPlayer) {
                     UUIDFetcher.getUUID(sender.getName(), unmutedByUuid ->
-                            unmute(playerName, uuid.toString(), record.getMutedBy(),
+                            unmute(playerName, uuid, record.getMutedBy(),
                                     record.getReason(), record.getStartDate(), record.getEndDate(), sender.getName(),
-                                    unmutedByUuid.toString(), unmuteReason.toString(), LocalDateTime.now()));
+                                    unmutedByUuid, unmuteReason.toString(), LocalDateTime.now()));
                 } else {
-                    unmute(playerName, uuid.toString(), record.getMutedBy(), record.getReason(),
+                    unmute(playerName, uuid, record.getMutedBy(), record.getReason(),
                             record.getStartDate(), record.getEndDate(), config.getString("mutesystem.consolename"),
                             config.getString("mutesystem.consolename"), unmuteReason.toString(), LocalDateTime.now());
                 }

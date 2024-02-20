@@ -11,12 +11,11 @@ public class PostLogin implements Listener {
 
     @EventHandler
     public void onPostLogin(PostLoginEvent event) {
+        MuteSystem ms = MuteSystem.getBs();
         String name = event.getPlayer().getName();
-        if (MuteSystem.getBs().getMutes().containsKey(name)) return;
+        if (ms.getMutes().containsKey(name)) return;
 
         // put current mute of each player in hashmap to reduce database accesses
-        UUIDFetcher.getUUID(name,
-                uuid -> MuteSystem.getBs().getSql().getMute(uuid.toString(),
-                        muteRecord -> MuteSystem.getBs().getMutes().put(name, muteRecord)));
+        UUIDFetcher.getUUID(name, uuid -> ms.getSql().getMute(uuid, muteRecord -> ms.getMutes().put(name, muteRecord)));
     }
 }

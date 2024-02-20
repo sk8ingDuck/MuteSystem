@@ -39,7 +39,7 @@ public class ClearMutes extends Command {
                     ? sender.getName()
                     : config.getString("mutesystem.consolename");
 
-            MuteSystem.getBs().getSql().clearMutesAsync(uuid.toString());
+            MuteSystem.getBs().getSql().clearMutesAsync(uuid);
             Util.broadcastMessage(config.get("mutesystem.clearmutes.successful",
                             "%PLAYER%", playerName,
                             "%UNMUTED_BY%", unmutedBy),

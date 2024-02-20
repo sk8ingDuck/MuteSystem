@@ -83,14 +83,17 @@ public class MessagesGermanConfig extends MessagesConfig {
 	@Override
 	public void loadTextComponents() {
 		if (fileConfiguration.getSection("textcomponents").getKeys().isEmpty()) {
-			fileConfiguration.set("textcomponents.muteBroadcast", "&6[INFO] {hovertext: &7Gemutet von &c%MUTED_BY%\n" +
+			fileConfiguration.set("textcomponents.muteBroadcast",
+					"&6[INFO] {hovertext: &7Gemutet von &c%MUTED_BY%\n" +
 					"&7Grund: &c%REASON%\n" +
 					"&7Dauer: &c%DURATION%}");
 
-			fileConfiguration.set("textcomponents.unmuteBroadcast", "&6[INFO] {hovertext: &7Entmutet von &c%UNMUTED_BY%\n" +
+			fileConfiguration.set("textcomponents.unmuteBroadcast",
+					"&6[INFO] {hovertext: &7Entmutet von &c%UNMUTED_BY%\n" +
 					"&7Grund: &c%REASON%}");
 
-			fileConfiguration.set("textcomponents.currentMute", "&6[INFO] {hovertext: &8------- &eAktueller Mute von &e%PLAYER% &8-------\n" +
+			fileConfiguration.set("textcomponents.currentMute",
+					"&6[INFO] {hovertext: &8------- &eAktueller Mute von &e%PLAYER% &8-------\n" +
 					"&7Grund: &e%REASON%\n" +
 					"&7Gemutet von: &e%MUTED_BY%\n" +
 					"&7Gemutet am: &e%MUTE_START%\n" +
@@ -99,7 +102,8 @@ public class MessagesGermanConfig extends MessagesConfig {
 					"&7Verbleibende Zeit: &e%REMAINING_TIME%\n" +
 					"&8------- &eAktueller Mute von &e%PLAYER% &8-------}");
 
-			fileConfiguration.set("textcomponents.pastMuteUnmuted", "&6[INFO] {hovertext: &8------- &eFrüherer Mute von &e%PLAYER% &7(&e%INDEX%&7) &8-------\n" +
+			fileConfiguration.set("textcomponents.pastMuteUnmuted",
+					"&6[INFO] {hovertext: &8------- &eFrüherer Mute von &e%PLAYER% &7(&e%INDEX%&7) &8-------\n" +
 					"&7Grund: &e%REASON%\n" +
 					"&7Gemutet von: &e%MUTED_BY%\n" +
 					"&7Gemutet am: &e%MUTE_START%\n" +
@@ -111,7 +115,8 @@ public class MessagesGermanConfig extends MessagesConfig {
 					"&7Entmute Zeit: &e%UNMUTE_TIME%\n" +
 					"&8------- &eFrüherer Mute von &e%PLAYER% &7(&e%INDEX%&7) &8-------}");
 
-			fileConfiguration.set("textcomponents.pastMuteNotUnmuted", "&6[INFO] {hovertext: &8------- &eFrüherer Mute von &e%PLAYER% &7(&e%INDEX%&7) &8-------\n" +
+			fileConfiguration.set("textcomponents.pastMuteNotUnmuted",
+					"&6[INFO] {hovertext: &8------- &eFrüherer Mute von &e%PLAYER% &7(&e%INDEX%&7) &8-------\n" +
 					"&7Grund: &e%REASON%\n" +
 					"&7Gemutet von: &e%MUTED_BY%\n" +
 					"&7Gemutet am: &e%MUTE_START%\n" +
