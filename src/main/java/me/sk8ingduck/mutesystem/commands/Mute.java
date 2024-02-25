@@ -8,13 +8,16 @@ import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
+import net.md_5.bungee.api.plugin.TabExecutor;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Mute extends Command {
+public class Mute extends Command implements TabExecutor {
 
     public Mute(String name, String permission, String... aliases) {
         super(name, permission, aliases);
@@ -25,12 +28,12 @@ public class Mute extends Command {
         MessagesConfig config = MuteSystem.getBs().getMessagesConfig();
 
         if (args.length == 0 ||(args.length == 1 && args[0].equalsIgnoreCase("help"))) {
-            sender.sendMessage(config.get("mutesystem.help"));
+            sender.sendMessage(config.get("mutesystem.help", false));
             return;
         }
 
         if (args.length < 2) {
-            sender.sendMessage(config.get("mutesystem.mute.syntax", true));
+            sender.sendMessage(config.get("mutesystem.mute.syntax"));
             return;
         }
 
@@ -40,15 +43,13 @@ public class Mute extends Command {
         UUIDFetcher.getUUID(playerName, uuid -> {
 
             if (uuid == null) {
-                sender.sendMessage(config.get("mutesystem.playernotfound", true,
-                        "%PLAYER%", playerName));
+                sender.sendMessage(config.get("mutesystem.playernotfound", "%PLAYER%", playerName));
                 return;
             }
 
             MuteSystem.getBs().getSql().getMute(uuid, muteRecord -> {
                 if (muteRecord != null) {
-                    sender.sendMessage(config.get("mutesystem.alreadymuted", true,
-                            "%PLAYER%", playerName));
+                    sender.sendMessage(config.get("mutesystem.alreadymuted", "%PLAYER%", playerName));
                     return;
                 }
 
@@ -59,29 +60,7 @@ public class Mute extends Command {
                 Matcher matcher = pattern.matcher(args[1]);
                 if (args.length == 2 && matcher.matches()) {
                     int templateId = Integer.parseInt(matcher.group(1));
-                    MuteSystem.getBs().getSql().getMuteTemplateAsync(templateId, muteTemplate -> {
-                        if (muteTemplate == null) {
-                            sender.sendMessage(config.get("mutesystem.template.add.error"));
-                            return;
-                        }
-
-                        LocalDateTime end = TimeHelper.addTime(start, muteTemplate.getTime());
-                        if (!sender.hasPermission("mutesystem.mute.permanent")) {
-                            long duration = Duration.between(LocalDateTime.now(), end).getSeconds();
-                            if (!MuteSystem.getBs().getSettingsConfig().canMute(sender, duration)) {
-                                sender.sendMessage(config.get("mutesystem.mute.nopermission", true));
-                                return;
-                            }
-                        }
-
-                        if (sender instanceof ProxiedPlayer) {
-                            UUIDFetcher.getUUID(sender.getName(), mutedByUuid -> mute(playerName, uuid,
-                                    sender.getName(), mutedByUuid, muteTemplate.getReason(), start, end));
-                        } else {
-                            mute(playerName, uuid, config.getString("mutesystem.consolename"),
-                                    config.getString("mutesystem.consolename"), muteTemplate.getReason(), start, end);
-                        }
-                    });
+                    handleTemplateMute(sender, config, uuid, playerName, templateId);
                     return;
                 }
 
@@ -89,7 +68,7 @@ public class Mute extends Command {
 
                 //No reason speicified
                 if (args.length == 2 && end != null) {
-                    sender.sendMessage(config.get("mutesystem.mute.syntax", true));
+                    sender.sendMessage(config.get("mutesystem.mute.syntax"));
                     return;
                 }
 
@@ -107,14 +86,19 @@ public class Mute extends Command {
 
                 if (!sender.hasPermission("mutesystem.mute.permanent")) {
                     long duration = Duration.between(LocalDateTime.now(), end).getSeconds();
-                    if (!MuteSystem.getBs().getSettingsConfig().canMute(sender, duration)) {
-                        sender.sendMessage(config.get("mutesystem.mute.nopermission",  true));
+                    if (MuteSystem.getBs().getSettingsConfig().getMaxMuteDuration(sender) < duration) {
+                        sender.sendMessage(config.get("mutesystem.mute.nopermission"));
                         return;
                     }
                 }
 
                 //mute
                 if (sender instanceof ProxiedPlayer) {
+                    if (!Util.canMute((ProxiedPlayer) sender, uuid)) {
+                        sender.sendMessage(config.get("mutesystem.mute.insufficient_rank"));
+                        return;
+                    }
+
                     LocalDateTime finalEnd = end;
                     UUIDFetcher.getUUID(sender.getName(), mutedByUuid -> mute(playerName, uuid,
                             sender.getName(), mutedByUuid, reason, start, finalEnd));
@@ -123,6 +107,39 @@ public class Mute extends Command {
                             config.getString("mutesystem.consolename"), reason, start, end);
                 }
             });
+        });
+    }
+
+    private void handleTemplateMute(CommandSender sender, MessagesConfig config,
+                                    String uuid, String playerName, int templateId) {
+        MuteSystem.getBs().getSql().getMuteTemplateAsync(templateId, muteTemplate -> {
+            if (muteTemplate == null) {
+                sender.sendMessage(config.get("mutesystem.template.add.error"));
+                return;
+            }
+            LocalDateTime start = LocalDateTime.now();
+
+            LocalDateTime end = TimeHelper.addTime(start, muteTemplate.getTime());
+            if (!sender.hasPermission("mutesystem.mutesystem.permanent")) {
+                long duration = Duration.between(LocalDateTime.now(), end).getSeconds();
+                if (MuteSystem.getBs().getSettingsConfig().getMaxMuteDuration(sender) < duration) {
+                    sender.sendMessage(config.get("mutesystem.mute.nopermission"));
+                    return;
+                }
+            }
+
+            if (sender instanceof ProxiedPlayer) {
+                if (!Util.canMute((ProxiedPlayer) sender, uuid)) {
+                    sender.sendMessage(config.get("mutesystem.mute.insufficient_rank"));
+                    return;
+                }
+
+                UUIDFetcher.getUUID(sender.getName(), bannedByUuid -> mute(playerName, uuid,
+                        sender.getName(), bannedByUuid, muteTemplate.getReason(), start, end));
+            } else {
+                mute(playerName, uuid, config.getString("mutesystem.consolename"),
+                        config.getString("mutesystem.consolename"), muteTemplate.getReason(), start, end);
+            }
         });
     }
 
@@ -149,5 +166,27 @@ public class Mute extends Command {
                     reason, start, end, false));
         }
 
+    }
+
+    @Override
+    public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
+        List<String> suggestions = new ArrayList<>();
+
+        if (args.length == 1) {
+            for (ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {
+                if (player.getName().toLowerCase().startsWith(args[0].toLowerCase())
+                        && !player.getName().equals(sender.getName())) {
+                    suggestions.add(player.getName());
+                }
+            }
+        } else if (args.length == 2) {
+            String[] timeUnits = {"s", "m", "h", "d", "w", "y"};
+            for (String unit : timeUnits) {
+                suggestions.add(args[1] + unit);
+            }
+            suggestions.add("#<ID>");
+        }
+
+        return suggestions;
     }
 }

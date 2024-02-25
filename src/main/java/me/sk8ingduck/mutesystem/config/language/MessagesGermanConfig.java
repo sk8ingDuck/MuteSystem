@@ -1,4 +1,6 @@
-package me.sk8ingduck.mutesystem.config;
+package me.sk8ingduck.mutesystem.config.language;
+
+import me.sk8ingduck.mutesystem.config.MessagesConfig;
 
 public class MessagesGermanConfig extends MessagesConfig {
 
@@ -28,6 +30,8 @@ public class MessagesGermanConfig extends MessagesConfig {
 						"&7&m-----------------&r&e« MuteSystem »&7&m-----------------");
 		messages.put("mutesystem.mute.syntax", "&cSyntax: /mute <Spieler> [<Zeit>] <Grund>");
 		messages.put("mutesystem.mute.nopermission", "&cDu hast nicht genug Rechte!");
+		messages.put("bansystem.ban.insufficient_rank", "&cDu hast keine Rechte diesen Spieler zu muten.");
+
 		messages.put("mutesystem.mute.successful",
 				"&7Spieler &c%PLAYER% &7wurde gemutet! {muteBroadcast}");
 		messages.put("mutesystem.unmute.syntax", "&cSyntax: /unmute <Spieler> [<Grund>]");

@@ -18,7 +18,7 @@ public abstract class MessagesConfig extends Config {
 	protected LinkedHashMap<String, String> messages;
 
 	public MessagesConfig(String name, String path) {
-		super(name, path);
+		super(name, path, false);
 
 		this.messages = new LinkedHashMap<>();
 		loadMessages();

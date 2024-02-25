@@ -1,34 +1,44 @@
 package me.sk8ingduck.mutesystem.config;
 
+import me.sk8ingduck.mutesystem.mysql.MySQLDetails;
 import net.md_5.bungee.api.CommandSender;
-import java.util.HashMap;
+
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class SettingsConfig extends Config {
 
-	private String language;
+	private final MySQLDetails mySQLDetails;
 	private final boolean webinterfaceEnabled;
 	private final int webinterfacePort;
-	private final HashMap<String, Integer> permissions;
+	private String language;
+	private Map<String, Integer> permissions;
+
 	public SettingsConfig(String name, String path) {
-		super(name, path);
+		super(name, path, true);
 
-		language = (String) getPathOrSet("mutesystem.language", "german", false);
+		mySQLDetails = new MySQLDetails(
+				(String) getPath("mutesystem.mysql.host"),
+				(int) getPath("mutesystem.mysql.port"),
+				(String) getPath("mutesystem.mysql.username"),
+				(String) getPath("mutesystem.mysql.password"),
+				(String) getPath("mutesystem.mysql.database"));
 
-		webinterfaceEnabled = (boolean) getPathOrSet("mutesystem.webinterface.enabled", true);
-		webinterfacePort = (int) getPathOrSet("mutesystem.webinterface.port", 42070);
+		language = (String) getPath("mutesystem.language");
+		webinterfaceEnabled = (boolean) getPath("mutesystem.webinterface.enabled");
+		webinterfacePort = (int) getPath("mutesystem.webinterface.port");
 
-		permissions = new HashMap<>();
-		permissions.put("mutesystem.mute.supporter", 24 * 60 * 60);
-		permissions.put("mutesystem.mute.srsupporter", 7 * 24 * 60 * 60);
-		permissions.put("mutesystem.mute.moderator", 30 * 24 * 60 * 60);
-		permissions.put("mutesystem.mute.srmoderator", 365 * 24 * 60 * 60);
-		permissions.forEach((permission, defaultValue) ->
-				permissions.put(permission, (int) getPathOrSet(permission, defaultValue)));
+		loadPermissions();
+	}
+
+	public MySQLDetails getMySQLDetails() {
+		return mySQLDetails;
 	}
 
 	public String getLanguage() {
 		return language;
 	}
+
 	public boolean isWebinterfaceEnabled() {
 		return webinterfaceEnabled;
 	}
@@ -37,16 +47,21 @@ public class SettingsConfig extends Config {
 		return webinterfacePort;
 	}
 
-	public boolean canMute(CommandSender sender, long muteDuration) {
-		return permissions.entrySet().stream()
-				.anyMatch(entry -> sender.hasPermission(entry.getKey()) && muteDuration <= entry.getValue());
+	public int getMaxMuteDuration(CommandSender sender) {
+		return permissions.entrySet().stream().filter(entry -> sender.hasPermission(entry.getKey()))
+				.mapToInt(Map.Entry::getValue).max().orElse(0);
+	}
+
+	private void loadPermissions() {
+		permissions = fileConfiguration.getSection("mutesystem.ban")
+				.getKeys()
+				.stream()
+				.collect(Collectors.toMap(key -> "mutesystem.ban." + key,
+						key -> fileConfiguration.getSection("mutesystem.ban").getInt(key)));
 	}
 
 	public void reload() {
 		super.reload();
-		language = (String) getPathOrSet("mutesystem.language", "german", false);
+		language = (String) getPath("mutesystem.language");
 	}
 }
-
-
-

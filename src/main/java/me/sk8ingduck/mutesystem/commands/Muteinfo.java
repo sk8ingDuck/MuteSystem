@@ -6,12 +6,17 @@ import me.sk8ingduck.mutesystem.utils.MuteRecord;
 import me.sk8ingduck.mutesystem.utils.UUIDFetcher;
 import me.sk8ingduck.mutesystem.utils.Util;
 import net.md_5.bungee.api.CommandSender;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
+import net.md_5.bungee.api.plugin.TabExecutor;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Muteinfo extends Command {
+public class Muteinfo extends Command implements TabExecutor {
 
     public Muteinfo(String name, String permission, String... aliases) {
         super(name, permission, aliases);
@@ -22,7 +27,7 @@ public class Muteinfo extends Command {
         MessagesConfig config = MuteSystem.getBs().getMessagesConfig();
 
         if (args.length != 1) {
-            sender.sendMessage(config.get("mutesystem.muteinfo.syntax", true));
+            sender.sendMessage(config.get("mutesystem.muteinfo.syntax"));
             return;
         }
 
@@ -30,15 +35,13 @@ public class Muteinfo extends Command {
 
         UUIDFetcher.getUUID(playerName, uuid -> {
             if (uuid == null) {
-                sender.sendMessage(config.get("mutesystem.playernotfound", true,
-                        "%PLAYER%", playerName));
+                sender.sendMessage(config.get("mutesystem.playernotfound", "%PLAYER%", playerName));
                 return;
             }
 
             MuteSystem.getBs().getSql().getMute(uuid, currentMuteRecord -> {
                 if (currentMuteRecord == null) {
-                    sender.sendMessage(config.get("mutesystem.muteinfo.nocurrentmute",
-                            true, "%PLAYER%", playerName));
+                    sender.sendMessage(config.get("mutesystem.muteinfo.nocurrentmute", "%PLAYER%", playerName));
                 } else {
                     Util.UUIDtoName(currentMuteRecord.getMutedBy(), mutedByName
                             -> sender.sendMessage(config.get("mutesystem.muteinfo.currentmute",
@@ -52,11 +55,10 @@ public class Muteinfo extends Command {
                 }
             });
 
-
+            //run async because of UUID to Name fetching
             MuteSystem.getBs().getSql().getPastMutes(uuid, pastMuteRecords -> {
                 if (pastMuteRecords == null || pastMuteRecords.isEmpty()) {
-                    sender.sendMessage(config.get("mutesystem.muteinfo.nopastmute", true,
-                            "%PLAYER%", playerName));
+                    sender.sendMessage(config.get("mutesystem.muteinfo.nopastmute", "%PLAYER%", playerName));
                     return;
                 }
 
@@ -94,5 +96,20 @@ public class Muteinfo extends Command {
 
     }
 
+    @Override
+    public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
+        List<String> suggestions = new ArrayList<>();
+
+        if (args.length == 1) {
+            for (ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {
+                if (player.getName().toLowerCase().startsWith(args[0].toLowerCase())
+                        && !player.getName().equals(sender.getName())) {
+                    suggestions.add(player.getName());
+                }
+            }
+        }
+
+        return suggestions;
+    }
 
 }

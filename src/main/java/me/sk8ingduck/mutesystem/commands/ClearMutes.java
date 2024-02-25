@@ -9,8 +9,12 @@ import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
+import net.md_5.bungee.api.plugin.TabExecutor;
 
-public class ClearMutes extends Command {
+import java.util.ArrayList;
+import java.util.List;
+
+public class ClearMutes extends Command implements TabExecutor {
 
     public ClearMutes(String name, String permission, String... aliases) {
         super(name, permission, aliases);
@@ -21,7 +25,7 @@ public class ClearMutes extends Command {
         MessagesConfig config = MuteSystem.getBs().getMessagesConfig();
 
         if (args.length != 1) {
-            sender.sendMessage(new TextComponent(config.get("mutesystem.clearmutes.syntax", true)));
+            sender.sendMessage(new TextComponent(config.get("mutesystem.clearmutes.syntax")));
             return;
         }
 
@@ -29,8 +33,7 @@ public class ClearMutes extends Command {
 
         UUIDFetcher.getUUID(playerName, uuid -> {
             if (uuid == null) {
-                sender.sendMessage(config.get("mutesystem.playernotfound", true,
-                        "%PLAYER%", args[0]));
+                sender.sendMessage(config.get("mutesystem.playernotfound", "%PLAYER%", args[0]));
                 return;
             }
 
@@ -52,5 +55,21 @@ public class ClearMutes extends Command {
                         "%PLAYER%", unmutedBy));
             }
         });
+    }
+
+    @Override
+    public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
+        List<String> suggestions = new ArrayList<>();
+
+        if (args.length == 1) {
+            for (ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {
+                if (player.getName().toLowerCase().startsWith(args[0].toLowerCase())
+                        && !player.getName().equals(sender.getName())) {
+                    suggestions.add(player.getName());
+                }
+            }
+        }
+
+        return suggestions;
     }
 }

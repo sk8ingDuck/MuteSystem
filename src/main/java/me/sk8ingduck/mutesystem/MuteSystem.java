@@ -2,10 +2,13 @@ package me.sk8ingduck.mutesystem;
 
 import me.sk8ingduck.mutesystem.commands.*;
 import me.sk8ingduck.mutesystem.config.*;
+import me.sk8ingduck.mutesystem.config.language.MessagesEnglishConfig;
+import me.sk8ingduck.mutesystem.config.language.MessagesGermanConfig;
 import me.sk8ingduck.mutesystem.listeners.Chat;
 import me.sk8ingduck.mutesystem.listeners.PostLogin;
+import me.sk8ingduck.mutesystem.mysql.MySQLDetails;
 import me.sk8ingduck.mutesystem.utils.MuteRecord;
-import me.sk8ingduck.mutesystem.utils.MySQL;
+import me.sk8ingduck.mutesystem.mysql.MySQL;
 import me.sk8ingduck.mutesystem.utils.TimeHelper;
 import me.sk8ingduck.mutesystem.utils.Util;
 import net.md_5.bungee.api.ProxyServer;
@@ -37,7 +40,6 @@ public final class MuteSystem extends Plugin {
 	@Override
 	public void onEnable() {
 		bs = this;
-		DBConfig dbConfig = new DBConfig("database.yml", "plugins/MuteSystem");
 		settingsConfig = new SettingsConfig("settings.yml", "plugins/MuteSystem");
 
 		MessagesConfig germanConfig = new MessagesGermanConfig("messages_german.yml", "plugins/MuteSystem");
@@ -49,7 +51,8 @@ public final class MuteSystem extends Plugin {
 			msgsConfig = englishConfig;
 		}
 
-		sql = new MySQL(dbConfig.getHost(), dbConfig.getPort(), dbConfig.getUsername(), dbConfig.getPassword(), dbConfig.getDatabase());
+		MySQLDetails details = settingsConfig.getMySQLDetails();
+		sql = new MySQL(details.getHost(), details.getPort(), details.getUsername(), details.getPassword(), details.getDatabase());
 		mutes = new HashMap<>();
 
 		PluginManager pluginManager = ProxyServer.getInstance().getPluginManager();

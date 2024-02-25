@@ -9,10 +9,13 @@ import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
+import net.md_5.bungee.api.plugin.TabExecutor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
-public class Unmute extends Command {
+public class Unmute extends Command implements TabExecutor {
 
     public Unmute(String name, String permission, String... aliases) {
         super(name, permission, aliases);
@@ -22,7 +25,7 @@ public class Unmute extends Command {
     public void execute(CommandSender sender, String[] args) {
         MessagesConfig config = MuteSystem.getBs().getMessagesConfig();
         if (args.length == 0) {
-            sender.sendMessage(config.get("mutesystem.unmute.syntax", true));
+            sender.sendMessage(config.get("mutesystem.unmute.syntax"));
             return;
         }
 
@@ -30,14 +33,12 @@ public class Unmute extends Command {
 
         UUIDFetcher.getUUID(playerName, uuid -> {
             if (uuid == null) {
-                sender.sendMessage(config.get("mutesystem.playernotfound", true,
-                        "%PLAYER%", playerName));
+                sender.sendMessage(config.get("mutesystem.playernotfound", "%PLAYER%", playerName));
                 return;
             }
             MuteSystem.getBs().getSql().getMute(uuid, record -> {
                 if (record == null) {
-                    sender.sendMessage(config.get("mutesystem.unmute.notmuted", true,
-                            "%PLAYER%", playerName));
+                    sender.sendMessage(config.get("mutesystem.unmute.notmuted", "%PLAYER%", playerName));
                     return;
                 }
 
@@ -81,5 +82,21 @@ public class Unmute extends Command {
                     "%UNMUTED_BY", unmutedByName,
                     "%REASON%", unmuteReason));
         }
+    }
+
+    @Override
+    public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
+        List<String> suggestions = new ArrayList<>();
+
+        if (args.length == 1) {
+            for (ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {
+                if (player.getName().toLowerCase().startsWith(args[0].toLowerCase())
+                        && !player.getName().equals(sender.getName())) {
+                    suggestions.add(player.getName());
+                }
+            }
+        }
+
+        return suggestions;
     }
 }

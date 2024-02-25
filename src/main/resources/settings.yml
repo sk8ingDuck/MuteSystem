@@ -1,0 +1,27 @@
+# Mute system configuration.
+mutesystem:
+
+  # MySQL server details.
+  # MySQL is required!
+  mysql:
+    host: '104.238.205.102'
+    port: 3306
+    username: 'u316_uvxRkVVk5U'
+    password: 'Obe7Shq424!^BzcK7wQ8Wz.R'
+    database: 's316_friendsystem'
+
+  # The language of the plugin
+  language: english
+
+  # This needs to be enabled if you want to use the Webinterface.
+  webinterface:
+    enabled: true
+    port: 42070
+
+  # Mute durations in seconds.
+  # The player has to have 'mutesystem.mute.<group>' permission to use the duration.
+  mute:
+    srmoderator: 31536000 # mutesystem.mute.srmoderator permission to use this duration
+    moderator: 2592000
+    srsupporter: 604800
+    supporter: 86400 # 86400 seconds = 1 day

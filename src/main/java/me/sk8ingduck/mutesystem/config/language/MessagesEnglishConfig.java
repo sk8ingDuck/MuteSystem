@@ -1,4 +1,6 @@
-package me.sk8ingduck.mutesystem.config;
+package me.sk8ingduck.mutesystem.config.language;
+
+import me.sk8ingduck.mutesystem.config.MessagesConfig;
 
 import java.util.LinkedHashMap;
 
@@ -32,6 +34,8 @@ public class MessagesEnglishConfig extends MessagesConfig {
 		messages.put("mutesystem.mute.syntax", "&cSyntax: /mute <Player> [<Time>] <Reason>");
 		messages.put("mutesystem.mute.nopermission", "&cYou don't have enough permissions!");
 		messages.put("mutesystem.mute.successful", "&7Player &c%PLAYER% &7was muted! {muteBroadcast}");
+		messages.put("bansystem.ban.insufficient_rank", "&cYou don't have permission to mute this player.");
+
 		messages.put("mutesystem.unmute.syntax", "&cSyntax: /unmute <Player> [<Reason>]");
 		messages.put("mutesystem.unmute.notunmuted", "&cPlayer &e%PLAYER% &cis not muted.");
 		messages.put("mutesystem.unmute.successful", "&7Player &e%PLAYER% &7was unmuted! {unmuteBroadcast}");

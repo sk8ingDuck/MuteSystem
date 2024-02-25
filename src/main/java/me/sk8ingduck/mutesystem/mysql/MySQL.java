@@ -1,7 +1,10 @@
-package me.sk8ingduck.mutesystem.utils;
+package me.sk8ingduck.mutesystem.mysql;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import me.sk8ingduck.mutesystem.utils.MuteRecord;
+import me.sk8ingduck.mutesystem.utils.MuteTemplate;
+import me.sk8ingduck.mutesystem.utils.Util;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 
