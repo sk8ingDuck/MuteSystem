@@ -4,6 +4,7 @@ import me.sk8ingduck.mutesystem.MuteSystem;
 import me.sk8ingduck.mutesystem.utils.MuteRecord;
 import me.sk8ingduck.mutesystem.utils.UUIDFetcher;
 import me.sk8ingduck.mutesystem.utils.Util;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.ChatEvent;
@@ -39,10 +40,10 @@ public class Chat implements Listener {
         event.setCancelled(true);
         event.setMessage(null);
 
-        Util.UUIDtoName(muteRecord.getMutedBy(), mutedByName ->
-                player.sendMessage(MuteSystem.getBs().getMessagesConfig().get("mutesystem.mutemessage",
-                        "%REASON%", muteRecord.getReason(),
-                        "%MUTED_BY%", mutedByName,
-                        "%REMAINING_TIME%", muteRecord.getRemaining())));
-    }
+        ProxyServer.getInstance().getScheduler().runAsync(MuteSystem.getBs(), () -> {
+            player.sendMessage(new TextComponent(MuteSystem.getBs().getMessagesConfig().get("mutesystem.mutemessage",
+                    "%REASON%", muteRecord.getReason(),
+                    "%MUTED_BY%", Util.UUIDtoName(muteRecord.getMutedBy()),
+                    "%REMAINING_TIME%", muteRecord.getRemaining())));
+        });    }
 }

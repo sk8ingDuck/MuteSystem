@@ -37,63 +37,65 @@ public class Util {
 
     /**
      * Try to resolve an uuid to a name async
+     *
      * @param uuid the uuid
-     * @param acceptor the name acceptor
      */
-    public static void UUIDtoName(String uuid, Consumer<String> acceptor) {
+    public static String UUIDtoName(String uuid) {
         if (uuid == null || uuid.equals("")) {
-            acceptor.accept(null);
-        } else {
-            try {
-                UUIDFetcher.getName(UUID.fromString(uuid), acceptor);
-            } catch (IllegalArgumentException ex) {
-                acceptor.accept(uuid);
-            }
+            return null;
         }
+        String name;
+        try {
+            name = UUIDFetcher.getName(UUID.fromString(uuid));
+        } catch (IllegalArgumentException ex) {
+            name = uuid;
+        }
+        return name;
     }
 
+
     /**
-     * Check if a player can ban another player
-     * @param banner the player who wants to ban
-     * @param banned the player who will be banned
-     * @return true if the banner can ban the banned player
+     * Check if a player can mute another player.
+     * @param muted the player who should be muted.
+     * @param muter the player who is executing the mute command.
+     * @return true if the muter can mute the muted player.
      */
-    public static boolean canMute(ProxiedPlayer banner, String banned) {
+    public static boolean canMute(ProxiedPlayer muter, String muted) {
         if (!luckPermsEnabled) return true;
 
         LuckPerms luckPerms = LuckPermsProvider.get();
-        User bannerUser = luckPerms.getUserManager().getUser(banner.getUniqueId());
+        User muterUser = luckPerms.getUserManager().getUser(muter.getUniqueId());
 
-        if (bannerUser == null) return true;
+        if (muterUser == null) return true;
 
-        User bannedUser;
+        User mutedUser;
         try {
-            UUID bannedUUID = UUID.fromString(banned);
-            bannedUser = luckPerms.getUserManager().getUser(bannedUUID);
-            if (bannedUser == null) bannedUser = luckPerms.getUserManager().loadUser(bannedUUID).get();
+            UUID mutedUUID = UUID.fromString(muted);
+            mutedUser = luckPerms.getUserManager().getUser(mutedUUID);
+            if (mutedUser == null) mutedUser = luckPerms.getUserManager().loadUser(mutedUUID).get();
         } catch (IllegalArgumentException ex) {
-            bannedUser = luckPerms.getUserManager().getUser(banned);
+            mutedUser = luckPerms.getUserManager().getUser(muted);
         } catch (ExecutionException | InterruptedException e) {
             return true;
         }
 
-        if (bannedUser == null) return true;
+        if (mutedUser == null) return true;
 
-        Group bannedGroup = luckPerms.getGroupManager().getGroup(bannedUser.getPrimaryGroup());
-        Group bannerGroup = luckPerms.getGroupManager().getGroup(bannerUser.getPrimaryGroup());
+        Group mutedGroup = luckPerms.getGroupManager().getGroup(mutedUser.getPrimaryGroup());
+        Group muterGroup = luckPerms.getGroupManager().getGroup(muterUser.getPrimaryGroup());
 
-        if (bannerGroup == null || bannedGroup == null) return true;
+        if (muterGroup == null || mutedGroup == null) return true;
 
-        int maxWeightBanned = bannedGroup.getNodes(NodeType.WEIGHT).stream()
+        int maxWeightmuted = mutedGroup.getNodes(NodeType.WEIGHT).stream()
                 .mapToInt(WeightNode::getWeight)
                 .max()
                 .orElse(0);
 
-        int maxWeightBanner = bannerGroup.getNodes(NodeType.WEIGHT).stream()
+        int maxWeightMuter = muterGroup.getNodes(NodeType.WEIGHT).stream()
                 .mapToInt(WeightNode::getWeight)
                 .max()
                 .orElse(0);
 
-        return maxWeightBanned <= maxWeightBanner;
+        return maxWeightmuted <= maxWeightMuter;
     }
 }

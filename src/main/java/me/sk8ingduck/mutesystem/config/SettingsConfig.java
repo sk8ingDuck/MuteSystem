@@ -53,11 +53,11 @@ public class SettingsConfig extends Config {
 	}
 
 	private void loadPermissions() {
-		permissions = fileConfiguration.getSection("mutesystem.ban")
+		permissions = fileConfiguration.getSection("mutesystem.mute")
 				.getKeys()
 				.stream()
-				.collect(Collectors.toMap(key -> "mutesystem.ban." + key,
-						key -> fileConfiguration.getSection("mutesystem.ban").getInt(key)));
+				.collect(Collectors.toMap(key -> "mutesystem.mute." + key,
+						key -> fileConfiguration.getSection("mutesystem.mute").getInt(key)));
 	}
 
 	public void reload() {

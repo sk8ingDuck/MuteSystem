@@ -34,7 +34,7 @@ public class MessagesEnglishConfig extends MessagesConfig {
 		messages.put("mutesystem.mute.syntax", "&cSyntax: /mute <Player> [<Time>] <Reason>");
 		messages.put("mutesystem.mute.nopermission", "&cYou don't have enough permissions!");
 		messages.put("mutesystem.mute.successful", "&7Player &c%PLAYER% &7was muted! {muteBroadcast}");
-		messages.put("bansystem.ban.insufficient_rank", "&cYou don't have permission to mute this player.");
+		messages.put("mutesystem.mute.insufficient_rank", "&cYou don't have permission to mute this player.");
 
 		messages.put("mutesystem.unmute.syntax", "&cSyntax: /unmute <Player> [<Reason>]");
 		messages.put("mutesystem.unmute.notunmuted", "&cPlayer &e%PLAYER% &cis not muted.");
@@ -45,8 +45,8 @@ public class MessagesEnglishConfig extends MessagesConfig {
 		messages.put("mutesystem.muteinfo.nocurrentmute", "&cPlayer %PLAYER% is not muted currently.");
 		messages.put("mutesystem.muteinfo.currentmute", "&7Player %PLAYER% &cis currently muted! {currentMute}");
 		messages.put("mutesystem.muteinfo.nopastmute", "&cPlayer %PLAYER% has no previous mutes.");
-		messages.put("mutesystem.muteinfo.pastmuteUnmuted", "&7Mute from &e%DATE% {pastMuteNotUnmuted}");
-		messages.put("mutesystem.muteinfo.pastmuteNotunmuted", "&7Mute from &e%DATE% {pastMuteUnmuted}");
+		messages.put("mutesystem.muteinfo.pastmuteUnmuted", "&7Mute from &e%DATE% {pastMuteUnmuted}");
+		messages.put("mutesystem.muteinfo.pastmuteNotunmuted", "&7Mute from &e%DATE% {pastMuteNotUnmuted}");
 
 		messages.put("mutesystem.clearmutes.syntax", "&cSyntax: /clearmutes <Player>");
 		messages.put("mutesystem.clearmutes.successful", "&4!! &7Mute entries of &e%PLAYER% &7were cleared by &e%UNMUTED_BY% &4!!");
@@ -118,7 +118,7 @@ public class MessagesEnglishConfig extends MessagesConfig {
 					"&7Unmuted by: &e%UNMUTED_BY%\n" +
 					"&7Unmute reason: &e%UNMUTE_REASON%\n" +
 					"&7Unmute time: &e%UNMUTE_TIME%\n" +
-					"&8------- &ePrevious mute of &e%PLAYER% &7(&e%INDEX%&7) &8-------}");
+					"&8------- &ePrevious mute of &e%PLAYER% &8-------}");
 
 			fileConfiguration.set("textcomponents.pastMuteNotUnmuted",
 					"&6[INFO] {hovertext: &8------- &ePrevious mute of &e%PLAYER% &8-------\n" +
@@ -128,7 +128,7 @@ public class MessagesEnglishConfig extends MessagesConfig {
 					"&7Muted until: &e%MUTE_END%\n" +
 					"&7Mute duration: &e%DURATION%\n" +
 					"&7Unmuted: &cNO\n" +
-					"&8------- &ePrevious mute of &e%PLAYER% &7(&e%INDEX%&7) &8-------}");
+					"&8------- &ePrevious mute of &e%PLAYER% &8-------}");
 
 			super.save();
 		}

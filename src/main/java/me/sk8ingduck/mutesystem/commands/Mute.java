@@ -134,8 +134,8 @@ public class Mute extends Command implements TabExecutor {
                     return;
                 }
 
-                UUIDFetcher.getUUID(sender.getName(), bannedByUuid -> mute(playerName, uuid,
-                        sender.getName(), bannedByUuid, muteTemplate.getReason(), start, end));
+                UUIDFetcher.getUUID(sender.getName(), mutedByUuid -> mute(playerName, uuid,
+                        sender.getName(), mutedByUuid, muteTemplate.getReason(), start, end));
             } else {
                 mute(playerName, uuid, config.getString("mutesystem.consolename"),
                         config.getString("mutesystem.consolename"), muteTemplate.getReason(), start, end);
