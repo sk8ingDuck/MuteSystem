@@ -5,8 +5,6 @@ import com.zaxxer.hikari.HikariDataSource;
 import me.sk8ingduck.mutesystem.utils.MuteRecord;
 import me.sk8ingduck.mutesystem.utils.MuteTemplate;
 import me.sk8ingduck.mutesystem.utils.Util;
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.chat.TextComponent;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -14,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.function.Consumer;
 
-public class MySQL {
+public class MySQL implements Database {
 	private final HikariDataSource dataSource;
 
     public MySQL(String host, int port, String username, String password, String database) {
@@ -71,7 +69,7 @@ public class MySQL {
 
             stmt.close();
         } catch (SQLException e) {
-            ProxyServer.getInstance().getConsole().sendMessage(new TextComponent("§c[MuteSystem] MySQL Connection could not be established. Error:"));
+            Util.sendMessageToConsole("§c[MuteSystem] MySQL Connection could not be established. Error:");
             e.printStackTrace();
         }
     }
@@ -243,7 +241,9 @@ public class MySQL {
              PreparedStatement stmt = con.prepareStatement("SELECT * FROM muteTemplates ORDER BY id");
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
-                muteTemplates.add(new MuteTemplate(rs.getInt("id"),  rs.getString("time"), rs.getString("reason")));
+                muteTemplates.add(new MuteTemplate(rs.getInt("id"),
+                        rs.getString("time"),
+                        rs.getString("reason")));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -257,7 +257,9 @@ public class MySQL {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return new MuteTemplate(rs.getInt("id"), rs.getString("time"), rs.getString("reason"));
+                    return new MuteTemplate(rs.getInt("id"),
+                            rs.getString("time"),
+                            rs.getString("reason"));
                 }
             }
         } catch (SQLException e) {
@@ -272,10 +274,11 @@ public class MySQL {
 
     public void addMuteTemplate(String time, String reason) {
         try (Connection con = dataSource.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("INSERT INTO muteTemplates (time, reason) VALUES (?, ?)")) {
-            pstmt.setString(1, time);
-            pstmt.setString(2, reason);
-            pstmt.executeUpdate();
+             PreparedStatement stmt
+                     = con.prepareStatement("INSERT INTO muteTemplates (time, reason) VALUES (?, ?)")) {
+            stmt.setString(1, time);
+            stmt.setString(2, reason);
+            stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -283,7 +286,8 @@ public class MySQL {
 
     public void editMuteTemplate(int id, String newTime, String newReason) {
         try (Connection con = dataSource.getConnection();
-             PreparedStatement deleteTemplateStmt = con.prepareStatement("UPDATE muteTemplates SET time = ?, reason= ? WHERE id = ?")) {
+             PreparedStatement deleteTemplateStmt
+                     = con.prepareStatement("UPDATE muteTemplates SET time = ?, reason= ? WHERE id = ?")) {
             deleteTemplateStmt.setString(1, newTime);
             deleteTemplateStmt.setString(2, newReason);
             deleteTemplateStmt.setInt(3, id);

@@ -11,12 +11,10 @@ import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.Consumer;
 
 public class Util {
 
@@ -86,7 +84,7 @@ public class Util {
 
         if (muterGroup == null || mutedGroup == null) return true;
 
-        int maxWeightmuted = mutedGroup.getNodes(NodeType.WEIGHT).stream()
+        int maxWeightMuted = mutedGroup.getNodes(NodeType.WEIGHT).stream()
                 .mapToInt(WeightNode::getWeight)
                 .max()
                 .orElse(0);
@@ -96,6 +94,10 @@ public class Util {
                 .max()
                 .orElse(0);
 
-        return maxWeightmuted <= maxWeightMuter;
+        return maxWeightMuted <= maxWeightMuter;
+    }
+
+    public static void sendMessageToConsole(String message) {
+        ProxyServer.getInstance().getConsole().sendMessage(TextComponent.fromLegacyText(message));
     }
 }

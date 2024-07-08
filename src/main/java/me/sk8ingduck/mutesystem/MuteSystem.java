@@ -6,13 +6,11 @@ import me.sk8ingduck.mutesystem.config.language.MessagesEnglishConfig;
 import me.sk8ingduck.mutesystem.config.language.MessagesGermanConfig;
 import me.sk8ingduck.mutesystem.listeners.Chat;
 import me.sk8ingduck.mutesystem.listeners.PostLogin;
-import me.sk8ingduck.mutesystem.mysql.MySQLDetails;
+import me.sk8ingduck.mutesystem.mysql.*;
 import me.sk8ingduck.mutesystem.utils.MuteRecord;
-import me.sk8ingduck.mutesystem.mysql.MySQL;
 import me.sk8ingduck.mutesystem.utils.TimeHelper;
 import me.sk8ingduck.mutesystem.utils.Util;
 import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.api.plugin.PluginManager;
@@ -21,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 
@@ -31,7 +30,7 @@ public final class MuteSystem extends Plugin {
 	private SettingsConfig settingsConfig;
 	private MessagesConfig msgsConfig;
 
-	private MySQL sql;
+	private Database sql;
 
 	public static MuteSystem getBs() {
 		return bs;
@@ -51,8 +50,20 @@ public final class MuteSystem extends Plugin {
 			msgsConfig = englishConfig;
 		}
 
-		MySQLDetails details = settingsConfig.getMySQLDetails();
-		sql = new MySQL(details.getHost(), details.getPort(), details.getUsername(), details.getPassword(), details.getDatabase());
+		DatabaseDetails details = settingsConfig.getMySQLDetails();
+		if (details.isUseMySQL()) {
+			sql = new MySQL(details.getHost(), details.getPort(), details.getUsername(), details.getPassword(), details.getDatabase());
+		} else {
+			try {
+				Util.sendMessageToConsole("§6[MuteSystem] Loading SQLite driver...");
+				new SQLiteDriver(Paths.get("plugins/MuteSystem/driver"));
+				Util.sendMessageToConsole("§a[MuteSystem] Driver loaded successfully!");
+			} catch (Exception e) {
+				Util.sendMessageToConsole("§c[MuteSystem] Failed to load SQLite Driver! Error:");
+				throw new RuntimeException(e);
+			}
+			sql = new SQLite("mutesystem.db", Paths.get("plugins/MuteSystem", "database"));
+		}
 		mutes = new HashMap<>();
 
 		PluginManager pluginManager = ProxyServer.getInstance().getPluginManager();
@@ -68,7 +79,7 @@ public final class MuteSystem extends Plugin {
 		pluginManager.registerListener(this, new PostLogin());
 
 
-		System.out.println("§a[MuteSystem] MuteSystem activated!");
+		Util.sendMessageToConsole("§a[MuteSystem] MuteSystem activated!");
 
 		if (settingsConfig.isWebinterfaceEnabled())
 			listen(settingsConfig.getWebinterfacePort());
@@ -76,7 +87,7 @@ public final class MuteSystem extends Plugin {
 
 	@Override
 	public void onDisable() {
-		System.out.println("§c[MuteSystem] MuteSystem disabled!");
+		Util.sendMessageToConsole("§c[MuteSystem] MuteSystem disabled!");
 		sql.close();
 	}
 
@@ -88,7 +99,7 @@ public final class MuteSystem extends Plugin {
 		return msgsConfig;
 	}
 
-	public MySQL getSql() {
+	public Database getSql() {
 		return sql;
 	}
 
@@ -170,7 +181,7 @@ public final class MuteSystem extends Plugin {
 									"%REASON%", reason));
 						}
 					} else {
-						ProxyServer.getInstance().getConsole().sendMessage(new TextComponent("§c[MuteManagment] Received invalid mute package."));
+						Util.sendMessageToConsole("§c[MuteManagement] Received invalid mute package.");
 					}
 
 					socket.close();

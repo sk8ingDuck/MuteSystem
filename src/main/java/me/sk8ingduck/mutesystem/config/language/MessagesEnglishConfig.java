@@ -37,14 +37,14 @@ public class MessagesEnglishConfig extends MessagesConfig {
 		messages.put("mutesystem.mute.insufficient_rank", "&cYou don't have permission to mute this player.");
 
 		messages.put("mutesystem.unmute.syntax", "&cSyntax: /unmute <Player> [<Reason>]");
-		messages.put("mutesystem.unmute.notunmuted", "&cPlayer &e%PLAYER% &cis not muted.");
+		messages.put("mutesystem.unmute.notmuted", "&cPlayer &e%PLAYER% &cis not muted.");
 		messages.put("mutesystem.unmute.successful", "&7Player &e%PLAYER% &7was unmuted! {unmuteBroadcast}");
 		messages.put("mutesystem.unmute.youarenolongermuted", "&7You were unmuted by &e%PLAYER%" +
 				"\n&7Reason: &e%REASON%");
 		messages.put("mutesystem.muteinfo.syntax", "&cSyntax: /muteinfo <Player>");
-		messages.put("mutesystem.muteinfo.nocurrentmute", "&cPlayer %PLAYER% is not muted currently.");
+		messages.put("mutesystem.muteinfo.nocurrentmute", "&aPlayer %PLAYER% is not muted currently.");
 		messages.put("mutesystem.muteinfo.currentmute", "&7Player %PLAYER% &cis currently muted! {currentMute}");
-		messages.put("mutesystem.muteinfo.nopastmute", "&cPlayer %PLAYER% has no previous mutes.");
+		messages.put("mutesystem.muteinfo.nopastmute", "&aPlayer %PLAYER% has no previous mutes.");
 		messages.put("mutesystem.muteinfo.pastmuteUnmuted", "&7Mute from &e%DATE% {pastMuteUnmuted}");
 		messages.put("mutesystem.muteinfo.pastmuteNotunmuted", "&7Mute from &e%DATE% {pastMuteNotUnmuted}");
 

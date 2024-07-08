@@ -1,6 +1,6 @@
 package me.sk8ingduck.mutesystem.config;
 
-import me.sk8ingduck.mutesystem.mysql.MySQLDetails;
+import me.sk8ingduck.mutesystem.mysql.DatabaseDetails;
 import net.md_5.bungee.api.CommandSender;
 
 import java.util.Map;
@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 public class SettingsConfig extends Config {
 
-	private final MySQLDetails mySQLDetails;
+	private final DatabaseDetails databaseDetails;
 	private final boolean webinterfaceEnabled;
 	private final int webinterfacePort;
 	private String language;
@@ -17,7 +17,8 @@ public class SettingsConfig extends Config {
 	public SettingsConfig(String name, String path) {
 		super(name, path, true);
 
-		mySQLDetails = new MySQLDetails(
+		databaseDetails = new DatabaseDetails(
+				((String) getPath("mutesystem.databaseType")).equalsIgnoreCase("mysql"),
 				(String) getPath("mutesystem.mysql.host"),
 				(int) getPath("mutesystem.mysql.port"),
 				(String) getPath("mutesystem.mysql.username"),
@@ -31,8 +32,8 @@ public class SettingsConfig extends Config {
 		loadPermissions();
 	}
 
-	public MySQLDetails getMySQLDetails() {
-		return mySQLDetails;
+	public DatabaseDetails getMySQLDetails() {
+		return databaseDetails;
 	}
 
 	public String getLanguage() {

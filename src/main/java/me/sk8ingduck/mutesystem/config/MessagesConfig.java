@@ -1,5 +1,6 @@
 package me.sk8ingduck.mutesystem.config;
 
+import me.sk8ingduck.mutesystem.utils.Util;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.*;
 
@@ -96,9 +97,9 @@ public abstract class MessagesConfig extends Config {
 			if (textComponent != null)
 				finalComponents.add(textComponent);
 			else
-				System.out.println("§c[MuteSystem] Failed to parse TextComponent {" + textComponentPath + "}. " +
-						"Most likely is that it has a wrong format! Format should be:\n" +
-						"Your text {hovertext: Your text on hover, command: /yourCommand}");
+				Util.sendMessageToConsole("§c[MuteSystem] Failed to parse TextComponent {" + textComponentPath + "}. " +
+								"Most likely is that it has a wrong format! Format should be:\n" +
+								"Your text {hovertext: Your text on hover, command: /yourCommand}");
 		}
 
 		// Add the remaining text after the last match
