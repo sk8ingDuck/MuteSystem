@@ -1,0 +1,37 @@
+name: MuteSystem-Spigot
+version: '${project.version}'
+main: me.sk8ingduck.mutesystemspigot.MuteSystem
+author: sk8ingDuck
+
+softdepend:
+  - LuckPerms
+
+commands:
+  mute:
+    description: Mute a player
+    usage: /mute <player> <reason>
+    permission: mutesystem.mute
+  tempmute:
+    description: Temporarily mute a player
+    usage: /tempmute <player> <duration> <reason>
+    permission: mutesystem.tempmute
+  unmute:
+    description: Unmute a player
+    usage: /unmute <player>
+    permission: mutesystem.unmute
+  muteinfo:
+    description: Get information about a player's mute
+    usage: /muteinfo <player>
+    permission: mutesystem.muteinfo
+  clearmutes:
+    description: Clear all mutes
+    usage: /clearmutes
+    permission: mutesystem.clearmutes
+  mutereload:
+    description: Reload the plugin
+    usage: /mutereload
+    permission: mutesystem.reload
+  mutetemplate:
+    description: Get the mute template
+    usage: /mutetemplate
+    permission: mutesystem.mutetemplate
