@@ -1,0 +1,34 @@
+# Mute system configuration.
+
+mutesystem:
+  # The language of the plugin
+  language: english
+
+  # databaseType: The type of database to use.
+  #               'MySQL' - To use a MySQL database.
+  #               'SQLite' - To use a SQLite (Flatfile / local) database.
+  #
+  # Make sure to enter the correct information for your database if you use MySQL.
+  #
+  # IMPORTANT: If you want to use the Webinterface, you have to use MySQL.
+  databaseType: 'SQLite'
+  mysql:
+    host: 'localhost'
+    port: 3306
+    username: 'root'
+    password: 'password'
+    database: 'database'
+
+
+  # This needs to be enabled if you want to use the Webinterface.
+  webinterface:
+    enabled: true
+    port: 42070 # port has to be the same as in the webinterface settings (settings.php)
+
+  # Mute durations in seconds.
+  # The player has to have 'mutesystem.mute.<group>' permission to use the duration.
+  mute:
+    srmoderator: 31536000 # mutesystem.mute.srmoderator permission to use this duration
+    moderator: 2592000
+    srsupporter: 604800
+    supporter: 86400 # 86400 seconds = 1 day

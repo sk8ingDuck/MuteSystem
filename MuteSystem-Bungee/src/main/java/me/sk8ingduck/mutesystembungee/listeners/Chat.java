@@ -25,8 +25,8 @@ public class Chat implements Listener {
         //if for some reason the hashmap doesnt contain the muterecord (e.g. reload)
         if (!MuteSystem.getBs().getMutes().containsKey(player.getName()))
             UUIDFetcher.getUUID(name,
-                    uuid -> MuteSystem.getBs().getSql().getMute(uuid.toString(), muteRecord ->
-                            MuteSystem.getBs().getMutes().put(name, muteRecord)));
+                    uuid -> MuteSystem.getBs().getSql().getMute(uuid,
+                            muteRecord -> MuteSystem.getBs().getMutes().put(name, muteRecord)));
 
         MuteRecord muteRecord = MuteSystem.getBs().getMutes().get(name);
 
@@ -38,7 +38,7 @@ public class Chat implements Listener {
         }
 
         event.setCancelled(true);
-        event.setMessage(null);
+        event.setMessage(""); //null throws an exception
 
         ProxyServer.getInstance().getScheduler().runAsync(MuteSystem.getBs(), () -> {
             player.sendMessage(new TextComponent(MuteSystem.getBs().getMessagesConfig().get("mutesystem.mutemessage",

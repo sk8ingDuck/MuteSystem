@@ -74,6 +74,7 @@ public class Muteinfo implements CommandExecutor, TabCompleter {
 									} else {
 										Util.sendMessage(sender, config.get("mutesystem.muteinfo.pastmuteUnmuted",
 												"%PLAYER%", playerName,
+												"%DATE%", DateTimeFormatter.ofPattern("dd.MM.yyyy").format(muteRecord.getStartDate()),
 												"%REASON%", muteRecord.getReason(),
 												"%MUTED_BY%", Util.UUIDtoName(muteRecord.getMutedBy()),
 												"%MUTE_START%", muteRecord.getStart(),
