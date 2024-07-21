@@ -62,17 +62,6 @@ public class SQLite implements Database {
 					"unmuteTime DATETIME, " +
 					"PRIMARY KEY(UUID, muteTime))");
 
-			stmt.executeUpdate("CREATE TABLE IF NOT EXISTS users(" +
-					"uuid TEXT PRIMARY KEY, " +
-					"password TEXT, " +
-					"canBan BOOLEAN, " +
-					"canUnban BOOLEAN, " +
-					"canDeletePastBans BOOLEAN, " +
-					"canMute BOOLEAN, " +
-					"canUnmute BOOLEAN, " +
-					"canDeletePastMutes BOOLEAN, " +
-					"canEditUsers BOOLEAN);");
-
 			stmt.executeUpdate("CREATE TABLE IF NOT EXISTS muteTemplates(" +
 					"id INTEGER PRIMARY KEY AUTOINCREMENT, " +
 					"time TEXT, " +

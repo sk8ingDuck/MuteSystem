@@ -51,6 +51,39 @@ public class MySQL implements Database {
                     "unmuteTime DATETIME, " +
                     "PRIMARY KEY(UUID, muteTime))");
 
+            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS muteTemplates(" +
+                    "id INT AUTO_INCREMENT PRIMARY KEY, " +
+                    "time VARCHAR(8)," +
+                    "reason VARCHAR(128))");
+
+            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS currentBans(" +
+                    "UUID VARCHAR(40) PRIMARY KEY, " +
+                    "bannedBy VARCHAR(40), " +
+                    "reason VARCHAR(255), " +
+                    "startTime DATETIME, " +
+                    "endTime DATETIME)");
+
+            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS pastBans(" +
+                    "UUID VARCHAR(40), " +
+                    "bannedBy VARCHAR(40), " +
+                    "reason VARCHAR(255), " +
+                    "startTime DATETIME, " +
+                    "endTime DATETIME, " +
+                    "PRIMARY KEY(UUID, startTime))");
+
+            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS unbans(" +
+                    "UUID VARCHAR(40), " +
+                    "unbannedBy VARCHAR(40), " +
+                    "unbanReason VARCHAR(255), " +
+                    "banTime DATETIME, " +
+                    "unbanTime DATETIME, " +
+                    "PRIMARY KEY(UUID, banTime))");
+
+            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS banTemplates(" +
+                    "id INT AUTO_INCREMENT PRIMARY KEY, " +
+                    "time VARCHAR(8)," +
+                    "reason VARCHAR(128))");
+
             stmt.executeUpdate("CREATE TABLE IF NOT EXISTS users(" +
                     "uuid VARCHAR(36) PRIMARY KEY, " +
                     "password VARCHAR(255), " +
@@ -61,11 +94,6 @@ public class MySQL implements Database {
                     "canUnmute BOOLEAN, " +
                     "canDeletePastMutes BOOLEAN, " +
                     "canEditUsers BOOLEAN);");
-
-            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS muteTemplates(" +
-                    "id INT AUTO_INCREMENT PRIMARY KEY, " +
-                    "time VARCHAR(8)," +
-                    "reason VARCHAR(128))");
 
             stmt.close();
         } catch (SQLException e) {
